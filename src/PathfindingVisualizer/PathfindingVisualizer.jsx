@@ -205,7 +205,7 @@ export default class PathfindingVisualizer extends Component {
     // Do not update special nodes
     if (node.isStart || node.isEnd || node.isCheckpoint) return newGrid;
 
-    // Update the node’s wall status based on the wall mode.
+    // Update the node's wall status based on the wall mode.
     newGrid[row][col] = {
       ...node,
       isWall: wallMode === 'add'
@@ -309,7 +309,7 @@ export default class PathfindingVisualizer extends Component {
   // Visualization Functions for Algorithms (Dijkstra and A*)
   // =====================================================
 
-  // Visualizes Dijkstra’s algorithm.
+  // Visualizes Dijkstra's algorithm.
   visualizeDijkstra = async () => {
     // Prevent multiple concurrent visualizations
     if (this.state.isRunning) return;
@@ -467,7 +467,7 @@ export default class PathfindingVisualizer extends Component {
         node.isVisited = false;
         node.distance = Infinity;
         node.previousNode = null;
-        // Update the node’s CSS class based on its type.
+        // Update the node's CSS class based on its type.
         const element = document.getElementById(`node-${node.row}-${node.col}`);
         if (node.isStart) element.className = 'node node-start';
         else if (node.isEnd) element.className = 'node node-end';
@@ -480,7 +480,7 @@ export default class PathfindingVisualizer extends Component {
     this.setState({ visitedNodesFirstPhase });
   };
 
-  // Clears only the visited nodes’ styles (useful for re-running the algorithm without removing walls).
+  // Clears only the visited nodes' styles (useful for re-running the algorithm without removing walls).
   clearVisitedNodes = () => {
     const { grid } = this.state;
     for (const row of grid) {
@@ -523,7 +523,7 @@ export default class PathfindingVisualizer extends Component {
     }
   };
   
-  // Animates visited nodes during the algorithm’s run.
+  // Animates visited nodes during the algorithm's run.
   animateVisitedNodes = async (visitedNodes, isSecondPhase = false) => {
     const delay = Math.max(1, (100 - this.state.animationSpeed) / 16);
   
@@ -727,7 +727,7 @@ export default class PathfindingVisualizer extends Component {
       isVisualizing: false
     });
 
-    // Update each node’s visual class according to its new state.
+    // Update each node's visual class according to its new state.
     for (const row of newGrid) {
       for (const node of row) {
         const element = document.getElementById(`node-${node.row}-${node.col}`);
@@ -1203,12 +1203,41 @@ export default class PathfindingVisualizer extends Component {
                 onClick={() => this.resetGrid()}
                 disabled={this.state.isVisualizing}
               >
-                Reset Grid
+                 Reset Grid
               </button>
             </li>
           </ul>
+          <div href="#click" className="speed-dropdown" role="button" aria-haspopup="true">
+            <button className="speed-dropdown-button" >
+              Speed: {this.state.speed.charAt(0).toUpperCase() + this.state.speed.slice(1)}
+              <span className="dropdown-arrow">▼</span>
+            </button>
+            <div className="speed-dropdown-content">
+              <button
+                className={`speed-option ${this.state.speed === 'slow' ? 'active' : ''} ${this.state.isHovering ? 'hover' : ''}`}
+                onClick={() => this.handleSpeedChange('slow')}
+                disabled={this.state.isVisualizing}
+              >
+                Slow
+              </button>
+              <button
+                className={`speed-option ${this.state.speed === 'fast' ? 'active' : ''} ${this.state.isHovering ? 'hover' : ''}`}
+                onClick={() => this.handleSpeedChange('fast')}
+                disabled={this.state.isVisualizing}
+              >
+                Fast
+              </button>
+              <button
+                className={`speed-option ${this.state.speed === 'instant' ? 'active' : ''} ${this.state.isHovering ? 'hover' : ''}`}
+                onClick={() => this.handleSpeedChange('instant')}
+                disabled={this.state.isVisualizing}
+              >
+                Instant
+              </button>
+            </div>
+          </div>
         </div>
-
+        
         {/* Display error messages if any */}
         {error && (
           <div

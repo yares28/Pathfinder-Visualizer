@@ -273,10 +273,17 @@ a {
   background: #ebebeb;
   font-weight: bold;
   z-index: 100;
-  transition: 0.05s padding, 0.05s background;
+  transition: 0.5s padding, 0.5s background;
   /* Positions the dropdown directly under the menu title */
   top: 100%;
   left: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 180px; /* Matches the menu title width */
+  max-width: 250px; /* Prevents excessive stretching */
 }
 
 /* Decorative arrow for dropdown */
@@ -292,6 +299,8 @@ a {
   left: 0;
   z-index: 101;
   transition: 0.05s border-top;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 /* When not hovering, reduce dropdown padding and change background */
@@ -320,6 +329,16 @@ a {
     0.5s padding cubic-bezier(0.73, 0.32, 0.34, 1.5),
     0.5s margin cubic-bezier(0.73, 0.32, 0.34, 1.5), 0.5s 0.2s color,
     0.2s background-color;
+  text-align: center;
+  width: 100%;
+  max-width: 200px;
+  display: flex;
+  margin: 0 auto;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  box-sizing: border-box;
+  margin: 0;
 }
 
 .menu-dropdown>*:hover {
@@ -338,6 +357,13 @@ a {
   transition: 0.5s 0.1s height, 0.5s 0.1s padding, 0.5s 0.1s margin,
     0.3s color, 0.6s visibility;
   z-index: 99;
+}
+.menu-dropdown > *:nth-child(3) {
+  text-align: center; /* Ensure text is centered */
+  display: flex; /* Use flexbox for centering */
+  justify-content: center; /* Horizontally center content */
+  align-items: center; /* Vertically center content */
+  margin: 0 auto; /* Center the item within its parent container */
 }
 
 /* --------------------- Controls Section --------------------- */
@@ -442,6 +468,17 @@ a {
 /* Show dropdown content on hover */
 .speed-dropdown:hover .speed-dropdown-content {
   display: block;
+}
+
+/* Add this to create an invisible gap between button and dropdown content */
+.speed-dropdown-content::before {
+  content: "";
+  position: absolute;
+  top: -10px; /* Creates an invisible bridge between button and dropdown */
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background: transparent;
 }
 
 .speed-option {
@@ -756,4 +793,20 @@ a {
   50% {
     transform: translateY(-5px);
   }
+}
+
+.hover-button {
+  background-color: #007bff; /* Match 'Add checkpoint' button color */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.hover-button:hover {
+  background-color: #0056b3; /* Darker shade for hover effect */
+  transform: scale(1.05); /* Slight scaling effect */
 }

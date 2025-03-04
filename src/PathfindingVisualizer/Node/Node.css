@@ -261,9 +261,15 @@
   /* Flex container for checkbox and its label */
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   width: 100%;
-  padding: 10px 20px;
+  padding: 5px 10px;
   cursor: pointer;
+  box-sizing: border-box;
+  margin: 0 auto;
+  position: relative;
+  left: 0;
+  transform: none;
 }
 
 .tool-checkbox-container:hover {
@@ -279,10 +285,11 @@
   height: 16px;
   border: 2px solid #666;
   border-radius: 3px;
-  margin-right: 10px;
+  margin-right: 25px;
   position: relative;
   cursor: pointer;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .tool-checkbox:checked {
@@ -305,6 +312,19 @@
   /* Ensure the label is clickable along with the checkbox */
   cursor: pointer;
   user-select: none;
+}
+
+.menu {
+  position: relative;
+  display: inline-block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.menu-title {
+  margin: 0;
+  padding: 0px;
+  text-align: center;
 }
 
 /* ------------------------ Permanent Visited Node Styling ------------------------ */
