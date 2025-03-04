@@ -26,6 +26,9 @@ Modify configuration via a settings file (e.g., config.js) or environment variab
 **Live Demo**
 Try it out live at: [Live Demo](https://pathfinder-visualizer-iota.vercel.app/)
 
+![alt text](https://github.com/user-attachments/assets/03c05fd4-8bae-41ed-9a24-1286e24f9127)
+
+
 # Getting Started
 
 **Prerequisites**
