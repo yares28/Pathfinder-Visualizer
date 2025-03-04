@@ -22,6 +22,7 @@ Real-Time Animation
 Step-by-step visual progression of the selected algorithm.
 Customizable Settings
 Modify configuration via a settings file (e.g., config.js) or environment variables.
+**(ATTENTION!! this demo only works on desktop not on the phone)**
 
 **Live Demo**
 Try it out live at: [Live Demo](https://pathfinder-visualizer-iota.vercel.app/)
