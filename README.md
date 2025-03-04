@@ -4,15 +4,15 @@
 Pathfinder Visualizer is an interactive web application designed to help developers, educators, and students understand and compare various pathfinding algorithms and maze generation techniques. With engaging real-time animations, you can watch how algorithms explore grids, find the shortest path, and generate mazes.
 
 
-#Features#
+#Features
 
-Algorithm Visualization
+**Algorithm Visualization**
 Dijkstra's Algorithm – Compute shortest paths in weighted grids.
 A* Search – A heuristic-based, efficient pathfinding method.
 Breadth-First Search (BFS) – Explore all neighbors level by level. (To be implemented)
 Depth-First Search (DFS) – Traverse deeply before backtracking. (To be implemented)
 
-Maze Generation
+**Maze Generation**
 Generate mazes using techniques such as recursive division.
 Interactive Grid
 Easily set start and end points.
@@ -23,32 +23,32 @@ Step-by-step visual progression of the selected algorithm.
 Customizable Settings
 Modify configuration via a settings file (e.g., config.js) or environment variables.
 
-Live Demo
+**Live Demo**
 Try it out live at: Live Demo
 
-Getting Started
+#Getting Started
 
-Prerequisites
+**Prerequisites**
 
         Node.js (v14 or later)
         npm or yarn
 
-Installation
+#Installation
 
-Clone the repository and install the dependencies:
+**Clone the repository and install the dependencies:**
 
         git clone https://github.com/yares28/Pathfinder-Visualizer.git
         cd Pathfinder-Visualizer
         npm install
 
-Running the Application
+#Running the Application
 
-Start the development server:
+**Start the development server:**
 
         npm start
         Then open your browser and navigate to http://localhost:3000 to use the visualizer.
 
-Usage
+**Usage**
 
 Select an Algorithm: Choose from the available pathfinding options (e.g., Dijkstra, A*, BFS, DFS).
 Configure the Grid: Click to set the starting (green) and ending (red) nodes.
@@ -69,9 +69,9 @@ Algorithms execute and complete as expected.
 UI components respond correctly to user input.
 A sample test script is provided in the project.
 
-Who Uses Pathfinder Visualizer
+#Who Uses Pathfinder Visualizer
 
-Pathfinder Visualizer is ideal for:
+**Pathfinder Visualizer is ideal for:**
 
 Developers: To debug or demonstrate algorithm performance.
 Educators: As a teaching aid in computer science courses.
