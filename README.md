@@ -1,10 +1,10 @@
-#Pathfinder Visualizer
+# Pathfinder Visualizer
 
 
 Pathfinder Visualizer is an interactive web application designed to help developers, educators, and students understand and compare various pathfinding algorithms and maze generation techniques. With engaging real-time animations, you can watch how algorithms explore grids, find the shortest path, and generate mazes.
 
 
-#Features
+# Features
 
 **Algorithm Visualization**
 Dijkstra's Algorithm – Compute shortest paths in weighted grids.
@@ -26,14 +26,14 @@ Modify configuration via a settings file (e.g., config.js) or environment variab
 **Live Demo**
 Try it out live at: Live Demo
 
-#Getting Started
+# Getting Started
 
 **Prerequisites**
 
         Node.js (v14 or later)
         npm or yarn
 
-#Installation
+# Installation
 
 **Clone the repository and install the dependencies:**
 
@@ -41,7 +41,7 @@ Try it out live at: Live Demo
         cd Pathfinder-Visualizer
         npm install
 
-#Running the Application
+# Running the Application
 
 **Start the development server:**
 
@@ -69,7 +69,7 @@ Algorithms execute and complete as expected.
 UI components respond correctly to user input.
 A sample test script is provided in the project.
 
-#Who Uses Pathfinder Visualizer
+# Who Uses Pathfinder Visualizer
 
 **Pathfinder Visualizer is ideal for:**
 
