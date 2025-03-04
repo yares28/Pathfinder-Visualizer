@@ -1,4 +1,4 @@
-#Pathfinder Visualizer#
+#Pathfinder Visualizer
 
 
 Pathfinder Visualizer is an interactive web application designed to help developers, educators, and students understand and compare various pathfinding algorithms and maze generation techniques. With engaging real-time animations, you can watch how algorithms explore grids, find the shortest path, and generate mazes.
