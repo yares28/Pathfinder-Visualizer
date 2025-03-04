@@ -28,6 +28,10 @@ Try it out live at: [Live Demo](https://pathfinder-visualizer-iota.vercel.app/)
 
 ![alt text](https://github.com/user-attachments/assets/03c05fd4-8bae-41ed-9a24-1286e24f9127)
 
+![alt text](https://github.com/user-attachments/assets/2038dbe3-93ce-40f6-acbf-47ef89c8bb35)
+
+![alt text](https://github.com/user-attachments/assets/db003658-a8b5-4364-aeb2-d3aa8e338572)
+
 
 # Getting Started
 
@@ -65,6 +69,7 @@ Grid Dimensions: Number of rows and columns.
 Animation Speed: Delay between algorithm steps.
 Algorithm Options: Enable or disable certain algorithms as needed.
 Integration with CI
+
 For continuous integration, you can include tests to verify that:
 
 The grid renders correctly.
