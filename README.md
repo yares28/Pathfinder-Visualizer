@@ -24,7 +24,7 @@ Customizable Settings
 Modify configuration via a settings file (e.g., config.js) or environment variables.
 
 **Live Demo**
-Try it out live at: Live Demo
+Try it out live at: [Live Demo](https://pathfinder-visualizer-iota.vercel.app/)
 
 # Getting Started
 
