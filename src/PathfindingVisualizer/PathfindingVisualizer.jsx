@@ -1301,7 +1301,7 @@ export default class PathfindingVisualizer extends Component {
         {/* Legend display explaining node symbols */}
         <div className="legend" role="region" aria-label="Grid legend">
           <div className="legend-item">
-            <FontAwesomeIcon icon={faAngleRight} spin spinReverse size="xl" />
+            <FontAwesomeIcon icon={faAngleRight} size="xl" />
             <span>Start Node</span>
           </div>
           <div className="legend-item">

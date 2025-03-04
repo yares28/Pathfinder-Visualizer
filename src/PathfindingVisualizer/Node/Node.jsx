@@ -59,7 +59,7 @@ const Node = ({
       tabIndex={tabIndex}
     >
       {/* Display an icon based on the node's type */}
-      {isStart && <FontAwesomeIcon icon={faAngleRight} spin spinReverse size="2xl" />}
+      {isStart && <FontAwesomeIcon icon={faAngleRight} size="2xl" />}
       {isEnd && <FontAwesomeIcon icon={faBullseye} size="xl" />}
       {isCheckpoint && <FontAwesomeIcon icon={faLocationDot} size="xl" />}
     </div>
