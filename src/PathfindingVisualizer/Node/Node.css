@@ -1,0 +1,376 @@
+/* =====================================================
+   Node.css
+   This stylesheet defines the appearance and animations for 
+   individual grid nodes used in the pathfinding visualizer.
+   It covers base node styling, animations for walls, visited nodes,
+   the shortest path, and custom styles for interactive elements.
+   =====================================================*/
+
+/* ------------------------ Base Node Styling ------------------------ */
+.node {
+  /* Fixed width and height for a consistent grid cell size */
+  width: 25px;
+  height: 25px;
+  /* Ensure padding and borders are included in the element's total width/height */
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  /* Light border to visually separate cells */
+  border: 1px solid #ddd;
+  /* Smooth transition for transform and background-color changes */
+  transition: transform 0.3s ease, background-color 0.3s ease;
+  /* Change cursor to pointer to indicate interactivity */
+  cursor: pointer;
+  /* Flexbox centering for any content inside the node (icons, etc.) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Relative positioning allows absolute elements inside */
+  position: relative;
+}
+
+/* ------------------------ Wall Node Styling ------------------------ */
+.node-wall {
+  /* Dark background to represent a wall */
+  background-color: #2f3640;
+  /* Remove border for wall appearance */
+  border: none;
+  /* Apply wall animation for visual effect when wall is added */
+  animation: wallAnimation 0.01s ease-out forwards;
+  animation-name: wallAnimation;
+  animation-duration: 0.3s;
+  animation-timing-function: ease-out;
+  animation-delay: 0;
+  animation-direction: alternate;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-play-state: running;
+}
+
+/* ------------------------ Wall Animation Keyframes ------------------------ */
+@keyframes wallAnimation {
+  0% {
+    /* Start with a small scale and a specific background color */
+    transform: scale(0.3);
+    background-color: rgb(12, 53, 71);
+  }
+  50% {
+    /* Expand beyond full size to create a bounce effect */
+    transform: scale(1.2);
+    background-color: rgb(12, 53, 71);
+  }
+  100% {
+    /* Settle back at full size with the same color */
+    transform: scale(1.0);
+    background-color: rgb(12, 53, 71);
+  }
+}
+
+/* ------------------------ Visited Node Animations ------------------------ */
+/* Standard visited node animation */
+.node-visited {
+  animation: visitedAnimation;
+  animation-duration: 1.5s;
+  animation-timing-function: ease-out;
+  animation-delay: 0;
+  animation-direction: alternate;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-play-state: running;
+}
+
+@keyframes visitedAnimation {
+  0% {
+    /* Begin with a scaled-down node and dark color with rounded borders */
+    transform: scale(0.3);
+    background-color: rgba(0, 0, 66, 0.75);
+    border-radius: 100%;
+  }
+  50% {
+    /* Transition to a blueish tone */
+    background-color: rgba(17, 104, 217, 0.75);
+  }
+  75% {
+    /* Expand slightly and shift to a greenish hue */
+    transform: scale(1.2);
+    background-color: rgba(0, 217, 159, 0.75);
+  }
+  100% {
+    /* Settle at full size with a final shade of blue */
+    transform: scale(1);
+    background-color: rgba(0, 190, 218, 0.75);
+  }
+}
+
+/* Secondary visited animation (for a second phase in multi-step algorithms) */
+.node-visited-second {
+  animation-name: visitedAnimationSecond;
+  animation-duration: 1.5s;
+  animation-timing-function: ease-out;
+  animation-delay: 0;
+  animation-direction: alternate;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-play-state: running;
+}
+
+@keyframes visitedAnimationSecond {
+  0% {
+    /* Begin with a different color and scale for variation */
+    transform: scale(0.3);
+    background-color: rgba(117, 0, 192, 0.75);
+    border-radius: 100%;
+  }
+  50% {
+    /* Transition to a medium purple shade */
+    background-color: rgba(142, 68, 196, 0.75);
+  }
+  75% {
+    /* Expand and shift to a lighter purple tone */
+    transform: scale(1.2);
+    background-color: rgba(178, 137, 200, 0.75);
+  }
+  100% {
+    /* Settle at full size with a soft purple color */
+    transform: scale(1);
+    background-color: rgba(199, 177, 211, 0.75);
+  }
+}
+
+/* Instant animations for immediate updates (no delay effect) */
+.node-visited.instant {
+  animation-name: visitedAnimation-instant;
+  animation-duration: 0.0000001s;
+  animation-timing-function: ease-out;
+  animation-delay: 0;
+  animation-direction: alternate;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-play-state: running;
+}
+
+.node-visited-second.instant {
+  animation-name: visitedAnimation-second-instant;
+  animation-duration: 0.0001s;
+  animation-timing-function: ease-out;
+  animation-delay: 0;
+  animation-direction: alternate;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-play-state: running;
+}
+
+/* Instant animation for shortest path display */
+.node-path.instant {
+  animation-name: shortestPath-instant;
+  animation-duration: 0.0001s;
+  animation-timing-function: ease-out;
+  animation-delay: 0;
+  animation-direction: alternate;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-play-state: running;
+}
+
+@keyframes visitedAnimation-instant {
+  100% {
+    /* Immediately set the visited node's final style */
+    transform: scale(1);
+    background-color: rgba(0, 190, 218, 0.75);
+  }
+}
+
+@keyframes visitedAnimation-second-instant {
+  100% {
+    /* Immediately set the second-phase visited node's final style */
+    transform: scale(1);
+    background-color: rgba(199, 177, 211, 0.75);
+  }
+}
+
+@keyframes shortestPath-instant {
+  100% {
+    /* Instant update for the shortest path nodes */
+    transform: scale(1);
+    background-color: rgb(255, 254, 106);
+  }
+}
+
+/* ------------------------ Shortest Path Styling ------------------------ */
+.node-path {
+  /* Yellow background to clearly indicate the chosen shortest path */
+  background-color: #d6c355;
+  /* Animate the appearance of the shortest path */
+  animation: pathAnimation 0.5s ease-out forwards;
+}
+
+@keyframes pathAnimation {
+  0% {
+    /* Begin smaller with the yellow color */
+    transform: scale(0.6);
+    background-color: rgb(255, 254, 106);
+  }
+  50% {
+    /* Grow larger to emphasize the path */
+    transform: scale(1.2);
+    background-color: rgb(255, 254, 106);
+  }
+  100% {
+    /* Settle at the intended scale and color */
+    transform: scale(1);
+    background-color: rgb(255, 254, 106);
+  }
+}
+
+/* ------------------------ Icon Color Styling ------------------------ */
+/* Color for the start node icon (angle arrow) */
+.node .fa-angle-right {
+  color: #2c3e50;
+}
+
+/* Color for the end node icon (bullseye) */
+.node .fa-bullseye {
+  color: #2c3e50;
+}
+
+/* Color for the checkpoint icon (location dot) */
+.node .fa-location-dot {
+  color: #2c3e50;
+}
+
+/* ------------------------ Wall Animation (Alternate) ------------------------ */
+.node-wall-animated {
+  animation: wallAppear 0.3s ease-out forwards;
+}
+
+@keyframes wallAppear {
+  from {
+    /* Start with a scaled-down wall and semi-transparent color */
+    transform: scale(0.3);
+    background-color: rgba(12, 53, 71, 0.75);
+  }
+  to {
+    /* End with full size and solid color */
+    transform: scale(1);
+    background-color: rgb(12, 53, 71);
+  }
+}
+
+/* ------------------------ Tool Checkbox Styling ------------------------ */
+.tool-checkbox-container {
+  /* Flex container for checkbox and its label */
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.tool-checkbox-container:hover {
+  /* Light hover effect for better user feedback */
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.tool-checkbox {
+  /* Remove default styling for a custom appearance */
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #666;
+  border-radius: 3px;
+  margin-right: 10px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tool-checkbox:checked {
+  /* Color the checkbox when checked */
+  background-color: #ff9800;
+  border-color: #ff9800;
+}
+
+.tool-checkbox:checked::after {
+  /* Display a checkmark for visual confirmation */
+  content: '✓';
+  position: absolute;
+  color: white;
+  font-size: 12px;
+  left: 2px;
+  top: -2px;
+}
+
+.tool-checkbox-container label {
+  /* Ensure the label is clickable along with the checkbox */
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ------------------------ Permanent Visited Node Styling ------------------------ */
+.node-permanent-visited {
+  /* Style for nodes that should remain marked as visited */
+  background-color: rgba(0, 190, 218, 0.75);
+  border: 1px solid rgb(175, 216, 248);
+  animation: visitedAnimation 0.3s ease-out forwards;
+}
+
+/* ------------------------ Custom Button Styling ------------------------ */
+.custom-button {
+  /* Spacing and dimensions for custom buttons */
+  margin: 12px;
+  height: 50px;
+  width: 120px;
+  border-radius: 10px;
+  background: #34495e;
+  /* Center text and icons */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Multiple box shadows for a 3D look */
+  box-shadow: -3px -3px 7px #243547, 
+              3px 3px 7px #283848,
+              inset 0 0 0 #34495e;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  font-size: 16px;
+  color: #ecf0f1;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-button:hover {
+  /* Change text color and shadow on hover for interactivity */
+  color: #3498db;
+  box-shadow: -2px -2px 5px #202f3f, 
+              2px 2px 5px #283848,
+              inset 2px 2px 3px #283848,
+              inset -2px -2px 3px #253649;
+  transform: translateY(1px);
+}
+
+.custom-button:active {
+  /* Further translate and adjust shadow when pressed */
+  transform: translateY(2px);
+  box-shadow: -1px -1px 3px #405d7d, 
+              1px 1px 3px #283848,
+              inset 3px 3px 4px #283848,
+              inset -3px -3px 4px #243446;
+  color: #2980b9;
+}
+
+.custom-button:disabled {
+  /* Disabled state with subdued colors and no interaction */
+  background: #2c3e50;
+  color: #95a5a6;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* ------------------------ Navbar Background Styling ------------------------ */
+.navbar {
+  background-color: #333;
+}

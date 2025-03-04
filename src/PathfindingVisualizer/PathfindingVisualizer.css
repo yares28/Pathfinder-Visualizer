@@ -1,0 +1,759 @@
+/* =======================================================
+   PathfindingVisualizer.css
+   This stylesheet provides the layout and visual styling 
+   for the pathfinding visualizer application, including:
+   - The grid container and grid layout.
+   - Global styles for the document.
+   - Styles for the top navigation bar and hover menus.
+   - Control buttons, legend display, and responsive behaviors.
+   - Animations for walls, visited nodes, and checkmarks.
+   ======================================================= */
+
+/* --------------------- Grid Container and Grid Styling --------------------- */
+.grid-container {
+  /* Positioning the grid container within the viewport */
+  margin-top: 130px;
+  margin: 90px 0 10px 0;
+  padding: 12px;
+  /* Full viewport width */
+  width: 100vw;
+  /* Height adjusted to leave a small margin at the top */
+  height: calc(100vh - 30px);
+  display: flex;
+  /* Aligns children to the start (top-left) */
+  justify-content: flex-start;
+  align-items: flex-start;
+  /* Allow scrolling if grid overflows */
+  overflow: auto;
+  /* Shifts container left for layout adjustment */
+  margin-left: -650px;
+}
+
+.grid {
+  /* Aligns the grid to the top */
+  align-self: flex-start;
+  /* Uses flexbox for inner layout */
+  display: flex;
+  /* Column direction to stack rows */
+  flex-direction: column;
+  /* Background color for the grid area */
+  background-color: #f0f0f0;
+  /* Light border for visual separation */
+  border: 1px solid #ccc;
+  /* Inline-block ensures grid is treated as a block element but with inline behavior */
+  display: inline-block;
+}
+
+.grid-row {
+  /* Uses CSS grid layout for each row */
+  display: grid;
+  /* Creates 75 columns of fixed width (25px each) */
+  grid-template-columns: repeat(75, 25px);
+  /* No gap between cells */
+  gap: 0px;
+}
+
+/* ----------------------------- Global Styles ----------------------------- */
+html {
+  /* Full height for the HTML document */
+  height: 100%;
+  /* Light background for the whole page */
+  background-color: #f8f8f8;
+}
+
+body {
+  /* Prevent scrolling on the body */
+  overflow: hidden;
+  /* Force full height */
+  height: 100%;
+  /* Sets a fixed width for the main content */
+  width: 600px;
+  /* Centers the content horizontally */
+  margin: 0 auto;
+  /* Uses a modern sans-serif font */
+  font-family: 'Roboto', sans-serif;
+  /* Text color for readability */
+  color: #555555;
+}
+
+a {
+  /* Removes underline from links */
+  text-decoration: none;
+  /* Inherits color from parent elements */
+  color: inherit;
+}
+
+/* Ensure all elements use border-box sizing */
+* {
+  box-sizing: border-box;
+}
+
+/* --------------------- Top Bar and Hover Menu --------------------- */
+.top-bar {
+  /* Fixed positioning to always remain at the top */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* Dark background for contrast */
+  background-color: #34495e;
+  padding: 10px 20px;
+  /* Flex layout for navigation items */
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  /* Spacing between menu items */
+  gap: 10px;
+  /* High z-index so it stays on top of other elements */
+  z-index: 100;
+  /* Subtle shadow for depth */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hList {
+  /* Horizontal list for menu items */
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 10px;
+  align-items: center;
+  /* Allows wrapping if needed */
+  flex-wrap: wrap;
+  /* Moves the list to the right */
+  margin-left: 450px;
+}
+
+/* Specific spacing for the third list item (e.g., Tools menu) */
+.hList li:nth-child(3) {
+  margin-right: 50px;
+}
+
+.hList li {
+  margin: 0;
+  padding: 0;
+}
+
+.menu {
+  /* Makes the menu clickable */
+  display: block;
+  position: relative;
+  cursor: pointer;
+}
+
+.menu-title {
+  /* Fixed dimensions for consistency */
+  display: block;
+  width: 180px;
+  height: 40px;
+  /* Vertically center text */
+  line-height: 44px;
+  /* Greenish background */
+  background: #9dc852;
+  text-align: center;
+  /* White text for contrast */
+  color: #ffffff;
+  font-weight: bold;
+  /* Uppercase text for styling */
+  text-transform: uppercase;
+  /* Smooth background transition on hover */
+  transition: 0.3s background-color;
+  position: relative;
+}
+
+/* Creates a decorative triangle below the menu title */
+.menu-title:before {
+  content: '';
+  display: block;
+  height: 0;
+  /* Top border gives the triangle shape */
+  border-top: 5px solid #9dc852;
+  /* Transparent sides to form the triangle */
+  border-left: 75px solid transparent;
+  border-right: 75px solid transparent;
+  border-bottom: 0 solid #dddddd;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 101;
+  transition: 0.2s 0.2s border-top ease-out, 0.3s border-top-color;
+}
+
+.menu-title:hover {
+  /* Darken background on hover */
+  background: #8db842;
+}
+
+.menu-title:hover:before {
+  /* Match the triangle color to hover state */
+  border-top-color: #8db842;
+}
+
+/* On menu hover, hide the decorative triangle smoothly */
+.menu:hover>.menu-title:before {
+  border-top-width: 0;
+  transition: 0.2s border-top-width ease-in, 0.3s border-top-color;
+}
+
+/* Decorative triangle at the bottom edge of the menu title */
+.menu-title:after {
+  content: '';
+  display: block;
+  height: 0;
+  border-left: 75px solid transparent;
+  border-right: 75px solid transparent;
+  border-bottom: 0 solid #ebebeb;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 101;
+  transition: 0.05s border-bottom ease-in;
+}
+
+.menu:hover>.menu-title:after {
+  border-bottom-width: 5px;
+  transition: 0.05s 0.05s border-bottom-width ease-out;
+}
+
+/* Secondary menu title variations with different colors */
+.menu-title_2nd {
+  background: #4e96b3;
+}
+
+.menu-title_2nd:hover {
+  background: #3e86a3;
+}
+
+.menu-title_2nd:before {
+  border-top-color: #4e96b3;
+}
+
+.menu-title_2nd:hover:before {
+  border-top-color: #3e86a3;
+}
+
+.menu-title_3rd {
+  background: #c97676;
+}
+
+.menu-title_3rd:hover {
+  background: #b96666;
+}
+
+.menu-title_3rd:before {
+  border-top-color: #c97676;
+}
+
+.menu-title_3rd:hover:before {
+  border-top-color: #b96666;
+}
+
+.menu-title_4th {
+  background: #dbab58;
+}
+
+.menu-title_4th:hover {
+  background: #cb9b48;
+}
+
+.menu-title_4th:before {
+  border-top-color: #dbab58;
+}
+
+.menu-title_4th:hover:before {
+  border-top-color: #cb9b48;
+}
+
+/* Dropdown menu styles */
+.menu-dropdown {
+  /* Minimum width ensures full menu title width */
+  min-width: 100%;
+  padding: 15px 0;
+  position: absolute;
+  background: #ebebeb;
+  font-weight: bold;
+  z-index: 100;
+  transition: 0.05s padding, 0.05s background;
+  /* Positions the dropdown directly under the menu title */
+  top: 100%;
+  left: 0;
+}
+
+/* Decorative arrow for dropdown */
+.menu-dropdown:after {
+  content: '';
+  display: block;
+  height: 0;
+  border-top: 5px solid #ebebeb;
+  border-left: 75px solid transparent;
+  border-right: 75px solid transparent;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 101;
+  transition: 0.05s border-top;
+}
+
+/* When not hovering, reduce dropdown padding and change background */
+.menu:not(:hover)>.menu-dropdown {
+  padding: 4px 0;
+  background: #dddddd;
+  z-index: 99;
+}
+
+.menu:not(:hover)>.menu-dropdown:after {
+  border-top-color: #dddddd;
+}
+
+.menu:not(:hover)>.menu-title:after {
+  border-bottom-color: #dddddd;
+}
+
+/* Individual dropdown item styles */
+.menu-dropdown>* {
+  overflow: hidden;
+  height: 30px;
+  padding: 5px 10px;
+  background: transparent;
+  white-space: nowrap;
+  transition: 0.5s height cubic-bezier(0.73, 0.32, 0.34, 1.5),
+    0.5s padding cubic-bezier(0.73, 0.32, 0.34, 1.5),
+    0.5s margin cubic-bezier(0.73, 0.32, 0.34, 1.5), 0.5s 0.2s color,
+    0.2s background-color;
+}
+
+.menu-dropdown>*:hover {
+  /* Highlight item on hover */
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Hide dropdown items when menu is not hovered */
+.menu:not(:hover)>.menu-dropdown>* {
+  visibility: hidden;
+  height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin: 0;
+  color: transparent;
+  transition: 0.5s 0.1s height, 0.5s 0.1s padding, 0.5s 0.1s margin,
+    0.3s color, 0.6s visibility;
+  z-index: 99;
+}
+
+/* --------------------- Controls Section --------------------- */
+.controls {
+  margin-bottom: 20px;
+}
+
+.controls button {
+  margin-right: 10px;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.controls-container {
+  padding: 20px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  margin: 90px 20px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* --------------------- Legend Section --------------------- */
+.legend {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  /* Subtle shadow for depth */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.legend-item:last-child {
+  margin-bottom: 0;
+}
+
+.legend-item .node {
+  width: 20px;
+  height: 20px;
+}
+
+/* --------------------- Responsive Styles --------------------- */
+@media (max-width: 768px) {
+  .controls-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .legend {
+    position: static;
+    margin: 20px auto;
+    max-width: 300px;
+  }
+}
+
+/* --------------------- Speed Dropdown Styles --------------------- */
+.speed-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.speed-dropdown-button {
+  padding: 8px 16px;
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.speed-dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: white;
+  min-width: 160px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  margin-top: 4px;
+  z-index: 1000;
+}
+
+/* Show dropdown content on hover */
+.speed-dropdown:hover .speed-dropdown-content {
+  display: block;
+}
+
+.speed-option {
+  width: 100%;
+  padding: 10px 20px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.speed-option:hover {
+  background-color: #f0f0f0;
+}
+
+.speed-option.active {
+  background-color: #e0e0e0;
+  font-weight: bold;
+}
+
+.speed-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Remove outdated speed control styles */
+.speed-control,
+.speed-buttons,
+.speed-button {
+  display: none;
+}
+
+.top-bar-controls {
+  display: none;
+}
+
+.speed-label {
+  color: white;
+  margin-right: 10px;
+  font-weight: 500;
+}
+
+/* --------------------- Remove Sub-Controls Styles --------------------- */
+.sub-controls,
+.sub-controls-group {
+  display: none;
+}
+
+/* --------------------- Updated Control Button Styles --------------------- */
+.control-button {
+  padding: 8px 16px;
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  height: 36px;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.control-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.control-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* --------------------- Legend Button Styles --------------------- */
+.legend-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #4e96b3;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.legend-button:hover {
+  background-color: #3e86a3;
+}
+
+/* Create a hover mask effect for the legend button */
+.legend-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(0);
+  transition: transform 0.5s ease-in;
+  border-radius: 50%;
+}
+
+.legend-button:hover::before {
+  transform: scale(2);
+  transition: transform 0.5s ease-in;
+}
+
+/* Ensure the button text stays above the hover mask */
+.legend-button span {
+  position: relative;
+  z-index: 1;
+}
+
+/* --------------------- Expanded Legend Styles --------------------- */
+.legend {
+  /* Initially hide the expanded legend */
+  display: none;
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  animation: bounceAnimation 1s infinite;
+}
+
+.legend-button:hover + .legend {
+  /* Show legend on hover over the button */
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --------------------- Wall and Visited Node Animations --------------------- */
+.node-wall-animated {
+  animation-name: wallAnimation;
+  animation-duration: 0.2s;
+  animation-timing-function: ease-out;
+  animation-delay: 0;
+  animation-direction: alternate;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-play-state: running;
+}
+
+/* The following animations ensure consistent styling when nodes are visited */
+.node node-visited-animated {
+  animation-name: wallAnimation;
+  animation-duration: 0.2s;
+  animation-timing-function: ease-out;
+  animation-delay: 0;
+  animation-direction: alternate;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-play-state: running;
+}
+.node node-visited-second-animated {
+  animation-name: wallAnimation;
+  animation-duration: 0.2s;
+  animation-timing-function: ease-out;
+  animation-delay: 0;
+  animation-direction: alternate;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-play-state: running;
+}
+
+/* Keyframes for wall scaling and color change animation */
+@keyframes wallAnimation {
+  0% {
+    transform: scale(0.3);
+    background-color: rgba(12, 53, 71, 0.75);
+  }
+  50% {
+    transform: scale(1.2);
+    background-color: rgba(12, 53, 71, 0.85);
+  }
+  100% {
+    transform: scale(1.0);
+    background-color: rgb(12, 53, 71);
+  }
+}
+
+/* --------------------- Node Weight Styling --------------------- */
+.node-weight {
+  background-color: rgba(237, 200, 89, 0.75);
+  border: 1px solid rgba(237, 200, 89, 0.35);
+  transition: all 0.3s ease;
+}
+
+/* --------------------- Custom Checkbox Styling --------------------- */
+.custom-checkbox {
+  position: absolute;
+  left: 0;
+  height: 18px;
+  width: 18px;
+  background-color: transparent;
+  border: 2px solid #555555;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+/* Change appearance when the checkbox is checked */
+.checkbox-label input:checked ~ .custom-checkbox {
+  background-color: #dbab58;  /* Matches the Tools menu color */
+  border-color: #dbab58;
+}
+
+/* Render the checkmark with a clip-path animation */
+.checkbox-label input:checked ~ .custom-checkbox::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 10px;
+  height: 10px;
+  border-width: 0 2px 2px 0;
+  border-style: solid;
+  border-color: white;
+  background-color: transparent;
+  transform-origin: bottom left;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  animation: checkmark 0.2s ease-in-out forwards;
+}
+
+/* Keyframes for checkmark animation */
+@keyframes checkmark {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Change border color on hover */
+.checkbox-label:hover .custom-checkbox {
+  border-color: #dbab58;
+}
+
+/* Disabled state styling for checkbox */
+.checkbox-label input:disabled ~ .custom-checkbox {
+  background-color: #e0e0e0;
+  border-color: #999999;
+  cursor: not-allowed;
+}
+
+/* Hide the default checkbox appearance */
+.checkbox-label input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Layout for checkbox label with text */
+.checkbox-label {
+  margin-left: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+/* --------------------- Legend Icon and Bounce Animation --------------------- */
+.legend-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: bounceAnimation 1s infinite;
+}
+
+@keyframes bounceAnimation {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Additional bounce effect for SVG icons in legend */
+.legend-item svg {
+  animation: bounceAnimation 1s;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
