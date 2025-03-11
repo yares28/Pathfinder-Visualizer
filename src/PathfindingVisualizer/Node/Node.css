@@ -6,11 +6,17 @@
    the shortest path, and custom styles for interactive elements.
    =====================================================*/
 
+/* Define CSS variables for dynamic configuration */
+:root {
+  /* Default node size - will be updated programmatically when resolution changes */
+  --node-size: 25px;
+}
+
 /* ------------------------ Base Node Styling ------------------------ */
 .node {
-  /* Fixed width and height for a consistent grid cell size */
-  width: 25px;
-  height: 25px;
+  /* Use CSS variable for dynamic sizing */
+  width: var(--node-size);
+  height: var(--node-size);
   /* Ensure padding and borders are included in the element's total width/height */
   box-sizing: border-box;
   margin: 0;

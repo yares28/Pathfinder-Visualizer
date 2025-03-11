@@ -10,70 +10,206 @@
    ======================================================= */
 
 /* --------------------- Grid Container and Grid Styling --------------------- */
+/* Default grid container (FHD - 1920x1080) */
 .grid-container {
   /* Positioning the grid container within the viewport */
-  margin-top: 130px;
-  margin: 90px 0 10px 0;
-  padding: 12px;
-  /* Full viewport width */
-  width: 100vw;
-  /* Height adjusted to leave a small margin at the top */
-  height: calc(100vh - 30px);
+  position: relative;
+  margin-top: 80px; /* Space for the top navigation bar */
+  padding: 14px;
+  /* Full viewport width with minimal margins */
+  width: calc(100vw - 40px);
+  /* Height adjusted to leave space for the navbar */
+  height: calc(100vh - 120px);
   display: flex;
-  /* Aligns children to the start (top-left) */
-  justify-content: flex-start;
-  align-items: flex-start;
+  /* Center the grid within the container */
+  justify-content: center;
+  align-items: center;
   /* Allow scrolling if grid overflows */
   overflow: auto;
-  /* Shifts container left for layout adjustment */
-  margin-left: -650px;
+  /* Center the container */
+  margin-left: auto;
+  margin-right: auto;
+  /* Light background with slight transparency */
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  /* Ensure the container doesn't exceed viewport bounds */
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* QHD resolution (2560x1440) */
+.grid-container-qhd {
+  position: relative;
+  margin-top: 90px; /* Space for the taller QHD top bar */
+  padding: 9px;
+  width: calc(100vw - 50px);
+  height: calc(100vh - 120px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* 4K UHD resolution (3840x2160) */
+.grid-container-4k {
+  position: relative;
+  margin-top: 100px; /* Space for the taller 4K top bar */
+  padding: 18px;
+  width: calc(100vw - 60px);
+  height: calc(100vh - 130px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* HD resolution (1366x768) */
+.grid-container-hd {
+  position: relative;
+  margin-top: 70px; /* Space for the smaller HD top bar */
+  padding: 16px;
+  width: calc(100vw - 30px);
+  height: calc(100vh - 100px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* ipad resolution (1280x720) */
+.grid-container-ipad {
+  position: relative;
+  margin-top: 125px; /* Space for the smaller HD small top bar */
+  padding: 10px;
+  width: calc(100vw - 20px);
+  height: calc(100vh - 90px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Mobile resolution */
+.grid-container-mobile {
+  position: relative;
+  margin-top: 60px; /* Space for the smallest mobile top bar */
+  padding: 8px;
+  width: calc(100vw - 16px);
+  height: calc(100vh - 80px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 4px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .grid {
-  /* Aligns the grid to the top */
-  align-self: flex-start;
-  /* Uses flexbox for inner layout */
-  display: flex;
-  /* Column direction to stack rows */
-  flex-direction: column;
-  /* Background color for the grid area */
+  /* Remove auto margins to allow the grid to fill the container */
+  margin: 0;
+  /* Light background color to distinguish from page background */
   background-color: #f0f0f0;
   /* Light border for visual separation */
   border: 1px solid #ccc;
-  /* Inline-block ensures grid is treated as a block element but with inline behavior */
-  display: inline-block;
+  /* Use flex display to allow better sizing */
+  display: flex;
+  flex-direction: column;
+  /* Let the grid grow to fill available space */
+  flex-grow: 1;
+  /* Ensure the grid doesn't overflow its container */
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .grid-row {
   /* Uses CSS grid layout for each row */
   display: grid;
-  /* Creates 75 columns of fixed width (25px each) */
-  grid-template-columns: repeat(75, 25px);
+  /* Default grid for 1920x1080 screens - 75 columns of var(--node-size) each */
+  grid-template-columns: repeat(75, var(--node-size));
   /* No gap between cells */
   gap: 0px;
 }
 
+/* Responsive grid styles for different screen sizes */
+@media screen and (max-width: 1366px) {
+  .grid-row {
+    /* Smaller screens get fewer columns */
+    grid-template-columns: repeat(50, var(--node-size));
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .grid-container {
+    width: calc(100vw - 20px); /* Less margin on smaller screens */
+    padding: 8px;
+  }
+  
+  .grid-row {
+    grid-template-columns: repeat(40, var(--node-size));
+  }
+}
+
+@media screen and (min-width: 2560px) {
+  .grid-row {
+    grid-template-columns: repeat(100, var(--node-size));
+  }
+}
+
+/* For truly dynamic sizing without media queries, use JavaScript to set this via inline styles */
+/* The grid-row class will be used as a fallback */
+
 /* ----------------------------- Global Styles ----------------------------- */
 html {
-  /* Full height for the HTML document */
   height: 100%;
-  /* Light background for the whole page */
-  background-color: #f8f8f8;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #f0f0f0; /* Light background color */
 }
 
 body {
-  /* Prevent scrolling on the body */
-  overflow: hidden;
-  /* Force full height */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
   height: 100%;
-  /* Sets a fixed width for the main content */
-  width: 600px;
-  /* Centers the content horizontally */
-  margin: 0 auto;
-  /* Uses a modern sans-serif font */
-  font-family: 'Roboto', sans-serif;
-  /* Text color for readability */
-  color: #555555;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', Arial, sans-serif;
+  color: #333;
+  background-color: #f0f0f0; /* Same as html for consistency */
 }
 
 a {
@@ -88,28 +224,215 @@ a {
   box-sizing: border-box;
 }
 
-/* --------------------- Top Bar and Hover Menu --------------------- */
+/* --------------------- Top Bar Styling --------------------- */
+/* Default top bar (FHD - 1920x1080) */
 .top-bar {
-  /* Fixed positioning to always remain at the top */
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  /* Dark background for contrast */
-  background-color: #34495e;
+  width: 100%;
+  background-color: #2c3e50;
+  color: white;
   padding: 10px 20px;
-  /* Flex layout for navigation items */
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
-  /* Spacing between menu items */
-  gap: 10px;
-  /* High z-index so it stays on top of other elements */
-  z-index: 100;
-  /* Subtle shadow for depth */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  height: 90px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  font-size: 0.95em;
+  flex-wrap: nowrap;
 }
 
+/* QHD resolution (2560x1440) */
+.top-bar-qhd {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #2c3e50;
+  color: white;
+  padding: 50px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+  height: 70px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+  font-size: 1.05em;
+}
+
+/* 4K UHD resolution (3840x2160) */
+.top-bar-4k {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #2c3e50;
+  color: white;
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+  height: 80px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  font-size: 1.1em;
+}
+
+/* HD resolution (1366x768) */
+.top-bar-hd {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #2c3e50;
+  color: white;
+  padding: 8px 15px; /* Adjusted padding to be more compact */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+  height: 80px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  font-size: 0.95em;
+}
+
+
+/* Adjust hList for FHD resolution (default) */
+.top-bar .hList {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Adjust hList for QHD resolution */
+.top-bar-qhd .hList {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Adjust hList for 4K resolution */
+.top-bar-4k .hList {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Adjust hList for HD 3 resolution */
+.top-bar-ipad .hList {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Adjust hList for mobile resolution */
+.top-bar-mobile .hList {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* HD resolution (1280x720) */
+.top-bar-ipad {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #2c3e50;
+  color: white;
+  padding: 6px 100px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+  height: 120px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  font-size: 0.9em;
+}
+
+/* Mobile resolution */
+.top-bar-mobile {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #2c3e50;
+  color: white;
+  padding: 5px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+  height: 40px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-size: 0.85em;
+}
+
+/* Menu items for different top bar sizes */
+.top-bar .menu-title {
+  padding: 10px 15px;
+  font-size: 16px;
+}
+
+.top-bar-qhd .menu-title {
+  padding: 12px 18px;
+  font-size: 17px;
+}
+
+.top-bar-4k .menu-title {
+  padding: 15px 20px;
+  font-size: 18px;
+}
+
+.top-bar-hd1 .menu-title {
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+.top-bar-hd3 .menu-title {
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+.top-bar-mobile .menu-title {
+  padding: 5px 8px;
+  font-size: 13px;
+}
+
+/* Resolution selector for different top bar sizes */
+.top-bar #resolution-select {
+  font-size: 14px;
+  padding: 4px 8px;
+}
+
+.top-bar-qhd #resolution-select {
+  font-size: 15px;
+  padding: 5px 10px;
+}
+
+.top-bar-4k #resolution-select {
+  font-size: 16px;
+  padding: 6px 12px;
+}
+
+.top-bar-hd #resolution-select {
+  font-size: 13px;
+  padding: 3px 7px;
+}
+
+.top-bar-hd-small #resolution-select {
+  font-size: 12px;
+  padding: 3px 6px;
+}
+
+.top-bar-mobile #resolution-select {
+  font-size: 11px;
+  padding: 2px 5px;
+}
+
+/* --------------------- Top Bar and Hover Menu --------------------- */
 .hList {
   /* Horizontal list for menu items */
   display: flex;
@@ -120,13 +443,18 @@ a {
   align-items: center;
   /* Allows wrapping if needed */
   flex-wrap: wrap;
-  /* Moves the list to the right */
-  margin-left: 450px;
+  /* Remove margin-left to start from the left */
+  margin-left: 0;
 }
 
-/* Specific spacing for the third list item (e.g., Tools menu) */
+/* Specific spacing for menu items */
 .hList li:nth-child(3) {
-  margin-right: 50px;
+  margin-right: 30px; /* Add spacing after the Tools menu */
+}
+
+/* Add spacing after the action buttons to separate from speed dropdown */
+.hList li:nth-child(6) {
+  margin-right: 20px;
 }
 
 .hList li {
@@ -202,7 +530,6 @@ a {
   height: 0;
   border-left: 75px solid transparent;
   border-right: 75px solid transparent;
-  border-bottom: 0 solid #ebebeb;
   position: absolute;
   bottom: 0;
   left: 0;
@@ -284,6 +611,8 @@ a {
   justify-content: center;
   min-width: 180px; /* Matches the menu title width */
   max-width: 250px; /* Prevents excessive stretching */
+  visibility: visible; /* Ensure visibility */
+  opacity: 1; /* Ensure opacity */
 }
 
 /* Decorative arrow for dropdown */
@@ -308,6 +637,15 @@ a {
   padding: 4px 0;
   background: #dddddd;
   z-index: 99;
+}
+
+/* Ensure hover works in FHD resolution */
+.top-bar .menu:hover>.menu-dropdown {
+  padding: 15px 0;
+  background: #ebebeb;
+  z-index: 100;
+  visibility: visible;
+  opacity: 1;
 }
 
 .menu:not(:hover)>.menu-dropdown:after {
@@ -358,6 +696,7 @@ a {
     0.3s color, 0.6s visibility;
   z-index: 99;
 }
+
 .menu-dropdown > *:nth-child(3) {
   text-align: center; /* Ensure text is centered */
   display: flex; /* Use flexbox for centering */
@@ -809,4 +1148,302 @@ a {
 .hover-button:hover {
   background-color: #0056b3; /* Darker shade for hover effect */
   transform: scale(1.05); /* Slight scaling effect */
+}
+
+/* Grid info display */
+.grid-info {
+  font-size: 14px;
+  color: #333;
+  padding: 5px 10px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  margin-left: 10px;
+  display: inline-block;
+}
+
+/* Additional responsive styles */
+@media screen and (max-width: 1366px) {
+  .grid-container {
+    height: calc(100vh - 130px);
+  }
+  
+  .top-bar {
+    padding: 8px 15px;
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .grid-container {
+    height: calc(100vh - 120px);
+  }
+  
+  .menu-title {
+    padding: 8px 10px;
+  }
+  
+  .grid-info {
+    font-size: 12px;
+    padding: 3px 6px;
+  }
+}
+
+@media screen and (min-width: 2560px) {
+  .grid-container {
+    height: calc(100vh - 180px);
+  }
+  
+  .grid-info {
+    font-size: 16px;
+    padding: 6px 12px;
+    margin-left: 20px;
+  }
+}
+
+/* Control items styling */
+.control-item {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 15px;
+}
+
+.control-item label {
+  margin-right: 8px;
+  color: white;
+  font-weight: 500;
+}
+
+/* Resolution selector styling */
+#resolution-select {
+  background-color: #2c3e50;
+  border: 1px solid #34495e;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+#resolution-select:hover {
+  background-color: #34495e;
+}
+
+#resolution-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Add a class for the entire visualizer container */
+.pathfinding-visualizer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Media queries for responsive layout */
+@media screen and (max-width: 1366px) {
+  .top-bar {
+    padding: 8px 15px;
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .menu-title {
+    padding: 8px 10px;
+  }
+  
+  .grid-info {
+    font-size: 12px;
+  }
+}
+
+@media screen and (min-width: 2560px) {
+  .grid-info {
+    margin-left: 20px;
+  }
+}
+
+/* For mobile devices */
+@media screen and (max-width: 768px) {
+  .grid-container {
+    margin-top: 70px;
+    height: calc(100vh - 80px);
+    padding: 5px;
+  }
+  
+  .top-bar {
+    padding: 5px 10px;
+    height: auto;
+  }
+  
+  .menu-title {
+    padding: 5px 8px;
+    font-size: 14px;
+  }
+  
+  #resolution-select {
+    padding: 3px 6px;
+    font-size: 12px;
+  }
+}
+
+/* Ensure dropdown items are visible when hovering in FHD resolution */
+.top-bar .menu:hover>.menu-dropdown>* {
+  visibility: visible;
+  height: 30px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  margin: 0;
+  color: rgb(48, 49, 42);
+  transition: 0.5s height cubic-bezier(0.73, 0.32, 0.34, 1.5),
+    0.5s padding cubic-bezier(0.73, 0.32, 0.34, 1.5),
+    0.5s margin cubic-bezier(0.73, 0.32, 0.34, 1.5), 0.5s 0.2s color,
+    0.2s background-color;
+  z-index: 100;
+}
+.top-bar-qhd .menu:hover>.menu-dropdown>* {
+  visibility: visible;
+  height: 30px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  margin: 0;
+  color: rgb(48, 49, 42);
+  transition: 0.5s height cubic-bezier(0.73, 0.32, 0.34, 1.5),
+    0.5s padding cubic-bezier(0.73, 0.32, 0.34, 1.5),
+    0.5s margin cubic-bezier(0.73, 0.32, 0.34, 1.5), 0.5s 0.2s color,
+    0.2s background-color;
+  z-index: 100;
+}
+.top-bar-4k .menu:hover>.menu-dropdown>* {
+  visibility: visible;
+  height: 30px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  margin: 0;
+  color: rgb(48, 49, 42);
+  transition: 0.5s height cubic-bezier(0.73, 0.32, 0.34, 1.5),
+    0.5s padding cubic-bezier(0.73, 0.32, 0.34, 1.5),
+    0.5s margin cubic-bezier(0.73, 0.32, 0.34, 1.5), 0.5s 0.2s color,
+    0.2s background-color;
+  z-index: 100;
+}
+.top-bar-ipad .menu:hover>.menu-dropdown>* {
+  visibility: visible;
+  height: 30px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  margin: 0;
+  color: rgb(48, 49, 42);
+  transition: 0.5s height cubic-bezier(0.73, 0.32, 0.34, 1.5),
+    0.5s padding cubic-bezier(0.73, 0.32, 0.34, 1.5),
+    0.5s margin cubic-bezier(0.73, 0.32, 0.34, 1.5), 0.5s 0.2s color,
+    0.2s background-color;
+  z-index: 100;
+}
+.top-bar-hd .menu:hover>.menu-dropdown>* {
+  visibility: visible;
+  height: 30px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  margin: 0;
+  color: rgb(48, 49, 42);
+  transition: 0.5s height cubic-bezier(0.73, 0.32, 0.34, 1.5),
+    0.5s padding cubic-bezier(0.73, 0.32, 0.34, 1.5),
+    0.5s margin cubic-bezier(0.73, 0.32, 0.34, 1.5), 0.5s 0.2s color,
+    0.2s background-color;
+  z-index: 100;
+}
+.top-bar-mobile .menu:hover>.menu-dropdown>* {
+  visibility: visible;
+  height: 30px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  margin: 0;
+  color: rgb(48, 49, 42);
+  transition: 0.5s height cubic-bezier(0.73, 0.32, 0.34, 1.5),
+    0.5s padding cubic-bezier(0.73, 0.32, 0.34, 1.5),
+    0.5s margin cubic-bezier(0.73, 0.32, 0.34, 1.5), 0.5s 0.2s color,
+    0.2s background-color;
+  z-index: 100;
+}
+
+.menu-dropdown > *:nth-child(3) {
+  text-align: center; /* Ensure text is centered */
+  display: flex; /* Use flexbox for centering */
+  justify-content: center; /* Horizontally center content */
+  align-items: center; /* Vertically center content */
+  margin: 0 auto; /* Center the item within its parent container */
+}
+
+/* Mobile Error Message Styles */
+.mobile-error-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #f8f9fa;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.mobile-error-message {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 2rem;
+  text-align: center;
+  max-width: 90%;
+  animation: fadeIn 0.5s ease-in-out;
+  overflow: auto;
+}
+
+.mobile-error-message h2 {
+  color: #e74c3c;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.mobile-error-message p {
+  color: #333;
+  margin-bottom: 0.8rem;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.mobile-error-icon {
+  margin-top: 1.5rem;
+  color: #3498db;
+  animation: pulse 2s infinite;
+  font-size: 2rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }

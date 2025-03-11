@@ -17,11 +17,18 @@ import { astar } from '../Algorithms/AStar';
 import { generateDFSMazeNew, recursiveDivisionMazeNew, stairMazeNew, randomMazeNew, basicRandomMazeNew } from '../Mazes/NewMazeAlgorithms';
 import { generateRandomMaze as generateOldRandomMaze } from '../Mazes/OldRandomMaze';
 import { generateRecursiveMaze as generateOldRecursiveMaze } from '../Mazes/OldRecursiveMaze';
+// Import the new maze generation functions directly
+import { generateRecursiveMaze } from '../Mazes/RecursiveMazeAlgorithm';
+import { generateStairMaze } from '../Mazes/StairMaze';
+import { generateRandomMaze } from '../Mazes/RandomMaze';
+import { generateBasicRandomMaze } from '../Mazes/BasicRandomMaze';
 // Import lodash throttle for limiting function calls
 import { throttle } from 'lodash';
 // Import FontAwesome icons for UI elements
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAngleRight, faBullseye, faLocationDot } from '@fortawesome/free-solid-svg-icons';
+// Import resolution configuration utilities
+import resolutionConfigs, { getResolutionConfig, calculateProportionalPosition, getResolutionOptions } from '../utils/resolutionConfigs';
 
 // Define animation speed constants
 const ANIMATION_SPEEDS = {
@@ -33,46 +40,206 @@ const ANIMATION_SPEEDS = {
 export default class PathfindingVisualizer extends Component {
   constructor(props) {
     super(props);
-    // Initialize state with grid configuration and UI flags
+    
+    // Get resolution configuration based on screen size
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    const resConfig = getResolutionConfig(screenWidth, screenHeight);
+    
+    // Set dimensions and default positions from resolution config
+    const { rows, cols, nodeSize, defaultPositions, containerClass, topBarClass } = resConfig;
+    
+    // Set checkpoint exists to false by default
+    const checkpointPos = { ...defaultPositions.checkpoint, exists: false };
+    
+    // Store original values for reference
+    this.defaultRows = rows;
+    this.defaultCols = cols;
+    this.defaultStartNode = defaultPositions.startNode;
+    this.defaultEndNode = defaultPositions.endNode;
+    this.defaultCheckpoint = checkpointPos;
+    this.nodeSize = nodeSize;
+    this.containerClass = containerClass;
+    this.topBarClass = topBarClass;
+    
+    // Check if user is on a mobile device with specific resolutions
+    const isMobileDevice = this.checkIfMobileDevice(screenWidth, screenHeight);
+    
     this.state = {
-      grid: [],                     // 2D array representing the grid nodes
-      isMousePressed: false,        // Tracks whether the mouse is pressed (for drawing walls)
-      isRunning: false,             // Indicates if an algorithm is currently running
-      startNode: { row: 15, col: 25 }, // Starting node coordinates
-      endNode: { row: 15, col: 51 },   // Ending node coordinates
-      visitedNodesFirstPhase: [],   // Holds visited nodes from the first phase (if using a checkpoint)
-      checkpoint: null,             // Optional checkpoint for multi-phase visualization
-      animationSpeed: ANIMATION_SPEEDS.fast, // Current animation speed setting
-      dragging: null,               // Tracks if a special node (start, end, checkpoint) is being dragged
-      wallMode: null,               // Indicates if walls are being added or removed
-      speed: 'fast',                // Current speed label used by maze/algorithm functions
-      isVisualizing: false,         // Indicates if a visualization (maze or algorithm) is in progress
-      lastUpdatedCell: null,        // Used to prevent redundant updates when drawing
-      boostWallEnabled: false,      // Flag for enabling boost wall mode (affects wall drawing pattern)
-      isBoostWallEnabled: false,    // (Possibly redundant state for boost wall; may be used interchangeably)
+      grid: [],
+      mouseIsPressed: false,
+      message: null,
+      dragging: {
+        isDragging: false,
+        draggedNodeType: null,
+        sourceRow: null,
+        sourceCol: null,
+      },
+      isRunning: false,
+      isVisualizing: false,
+      visitedNodesInOrder: [],
+      nodesInShortestPathOrder: [],
+      speed: 'fast', // Set default speed to fast
+      animationSpeed: 'fast', // Set default animation speed to fast
+      startNode: defaultPositions.startNode,
+      endNode: defaultPositions.endNode,
+      checkpoint: checkpointPos, // Checkpoint with exists=false
+      height: rows,
+      width: cols,
+      error: null,
+      boostWallEnabled: false,
+      currentResolution: resConfig.resolution,
+      availableResolutions: getResolutionOptions(),
+      containerClass: containerClass,
+      topBarClass: topBarClass,
+      isMobileDevice: isMobileDevice, // Add mobile device detection state
     };
 
     // Create a throttled version of grid update to optimize performance during rapid mouse movements
     this.throttledGridUpdate = throttle((newGrid) => {
       this.setState({ grid: newGrid });
     }, 16); // Throttled to roughly 60fps (16ms)
+  }
 
-    // Set initial positions for start and end nodes (used for grid reset)
-    this.initialStartNode = {
-      row: 15,
-      col: 15
-    };
-    this.initialEndNode = {
-      row: 15,
-      col: 56
-    };
+  // Check if the user is on a mobile device with specific resolutions
+  checkIfMobileDevice = (width, height) => {
+    // Target mobile resolutions (iPhone 6/7/8, iPhone 5/SE, and similar)
+    const mobileResolutions = [
+      { width: 375, height: 667 }, // iPhone 6/7/8
+      { width: 320, height: 568 }, // iPhone 5/SE
+      { width: 414, height: 736 }, // iPhone 6/7/8 Plus
+      { width: 390, height: 844 }, // iPhone 12/13
+      { width: 428, height: 926 }, // iPhone 12/13 Pro Max
+      { width: 360, height: 640 }, // Common Android
+      { width: 412, height: 915 }, // Pixel 6
+      { width: 360, height: 800 }, // Samsung Galaxy
+    ];
+    
+    // Check if current resolution is close to any of the target mobile resolutions
+    // We use a threshold to account for slight variations in reported resolutions
+    const threshold = 50; // pixels
+    
+    // First check if we have a direct match with common mobile resolutions
+    for (const res of mobileResolutions) {
+      if (
+        Math.abs(width - res.width) <= threshold && 
+        Math.abs(height - res.height) <= threshold
+      ) {
+        console.log(`Mobile device detected: ${width}x${height} matches ${res.width}x${res.height}`);
+        return true;
+      }
+    }
+    
+    // Also check if the width is in the typical mobile range (under 480px)
+    if (width <= 480) {
+      console.log(`Mobile device detected: width ${width} is under 480px`);
+      return true;
+    }
+    
+    // Check for portrait orientation with narrow width (typical for mobile)
+    if (width < height && width < 768) {
+      console.log(`Mobile device detected: portrait orientation with width ${width} < ${height}`);
+      return true;
+    }
+    
+    console.log(`Not a mobile device: ${width}x${height}`);
+    return false;
   }
 
   // Lifecycle method: componentDidMount is called once the component is mounted.
   // It initializes the grid.
   componentDidMount() {
+    // Check for mobile device on mount
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    const isMobileDevice = this.checkIfMobileDevice(screenWidth, screenHeight);
+    
+    // Update mobile device state if needed
+    if (isMobileDevice !== this.state.isMobileDevice) {
+      this.setState({ isMobileDevice });
+    }
+    
+    // Set initial node size CSS variable
+    document.documentElement.style.setProperty('--node-size', `${this.nodeSize}px`);
+    
+    // Apply the initial container class
+    setTimeout(() => {
+      this.updateGridContainerClass(this.containerClass);
+      this.updateTopBarClass(this.topBarClass);
+    }, 100);
+    
     this.initializeGrid();
+    
+    // Add resize event listener
+    window.addEventListener('resize', this.handleResize);
+    
+    // Store initial state as a backup
+    this.initialGrid = this.state.grid.slice();
+    this.initialStartNode = { ...this.state.startNode };
+    this.initialEndNode = { ...this.state.endNode };
+    
+    // Log grid dimensions for debugging
+    console.log(`Grid initialized with dimensions: ${this.state.height}x${this.state.width}`);
   }
+
+  componentWillUnmount() {
+    // Remove event listener when component unmounts
+    window.removeEventListener('resize', this.handleResize);
+  }
+
+  // Calculate grid dimensions based on screen size
+  calculateGridDimensions = () => {
+    // Get the current screen dimensions
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    
+    // Get the appropriate resolution configuration
+    const resConfig = getResolutionConfig(screenWidth, screenHeight);
+    
+    return { 
+      rows: resConfig.rows, 
+      cols: resConfig.cols,
+      nodeSize: resConfig.nodeSize,
+      defaultPositions: resConfig.defaultPositions
+    };
+  };
+
+  // Handle window resize and check for mobile device
+  handleResize = () => {
+    // Only recalculate if not in the middle of visualization
+    if (!this.state.isVisualizing && !this.state.isRunning) {
+      // Get the current screen dimensions
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      
+      // Check if user is on a mobile device with the new dimensions
+      const isMobileDevice = this.checkIfMobileDevice(screenWidth, screenHeight);
+      
+      // Get the appropriate resolution configuration
+      const resConfig = getResolutionConfig(screenWidth, screenHeight);
+      const { rows: newHeight, cols: newWidth, containerClass, topBarClass } = resConfig;
+      
+      // Store current dimensions for recalculation
+      const oldHeight = this.state.height;
+      const oldWidth = this.state.width;
+      
+      // Update the container class
+      this.updateGridContainerClass(containerClass);
+      this.updateTopBarClass(topBarClass);
+      
+      // Update state with new dimensions and mobile device status
+      this.setState({
+        height: newHeight,
+        width: newWidth,
+        containerClass: containerClass,
+        topBarClass: topBarClass,
+        isMobileDevice: isMobileDevice
+      }, () => {
+        this.recalculateSpecialNodePositions(oldHeight, oldWidth, newHeight, newWidth);
+        this.initializeGrid();
+      });
+    }
+  };
 
   // =====================================================
   // Grid Initialization and Node Creation Functions
@@ -81,11 +248,13 @@ export default class PathfindingVisualizer extends Component {
   // Creates a 2D grid of nodes.
   initializeGrid = () => {
     const grid = [];
-    // Loop over rows (32 rows)
-    for (let row = 0; row < 32; row++) {
+    const { height, width, startNode, endNode, checkpoint } = this.state;
+    
+    // Loop over rows
+    for (let row = 0; row < height; row++) {
       const currentRow = [];
-      // Loop over columns (75 columns)
-      for (let col = 0; col < 75; col++) {
+      // Loop over columns
+      for (let col = 0; col < width; col++) {
         // Create a node for each cell in the grid
         currentRow.push(this.createNode(row, col));
       }
@@ -98,17 +267,65 @@ export default class PathfindingVisualizer extends Component {
   // Creates an individual node object with properties determining its role.
   createNode = (row, col) => {
     const { startNode, endNode, checkpoint } = this.state;
+    
+    // Calculate relative positions based on grid dimensions for special nodes
+    // This ensures the nodes maintain their relative positions regardless of grid size
+    const isStart = row === startNode.row && col === startNode.col;
+    const isEnd = row === endNode.row && col === endNode.col;
+    const isCheckpoint = checkpoint && checkpoint.exists && 
+                        row === checkpoint.row && col === checkpoint.col;
+    
+    // Create and return the node object with its properties
     return {
       row,
       col,
-      isStart: row === startNode.row && col === startNode.col,   // Check if node is the start node
-      isEnd: row === endNode.row && col === endNode.col,           // Check if node is the end node
-      isCheckpoint: checkpoint ? (row === checkpoint.row && col === checkpoint.col) : false, // Optional checkpoint
-      isWall: false,         // Whether the node is a wall
-      isVisited: false,      // Whether the node has been visited by an algorithm
-      distance: Infinity,    // Distance metric for pathfinding algorithms (initialized to infinity)
-      previousNode: null,    // Pointer to the previous node for reconstructing the shortest path
+      isStart,
+      isEnd,
+      isWall: false,
+      isCheckpoint,
+      isVisited: false,
+      isPath: false,
+      distance: Infinity,
+      fScore: Infinity,
+      gScore: Infinity,
+      hScore: Infinity,
+      previousNode: null,
+      weight: 0,
     };
+  };
+
+  // Recalculates special node positions when grid dimensions change
+  recalculateSpecialNodePositions = (oldHeight, oldWidth, newHeight, newWidth) => {
+    // Only recalculate if dimensions have changed
+    if (oldHeight === newHeight && oldWidth === newWidth) return;
+    
+    const { startNode, endNode, checkpoint } = this.state;
+    
+    // Calculate new positions based on relative percentages
+    const newStartRow = Math.floor((startNode.row / oldHeight) * newHeight);
+    const newStartCol = Math.floor((startNode.col / oldWidth) * newWidth);
+    
+    const newEndRow = Math.floor((endNode.row / oldHeight) * newHeight);
+    const newEndCol = Math.floor((endNode.col / oldWidth) * newWidth);
+    
+    // Update state with new positions
+    const newState = {
+      startNode: { row: newStartRow, col: newStartCol },
+      endNode: { row: newEndRow, col: newEndCol },
+    };
+    
+    // Update checkpoint if it exists
+    if (checkpoint && checkpoint.exists) {
+      const newCheckpointRow = Math.floor((checkpoint.row / oldHeight) * newHeight);
+      const newCheckpointCol = Math.floor((checkpoint.col / oldWidth) * newWidth);
+      newState.checkpoint = { 
+        row: newCheckpointRow, 
+        col: newCheckpointCol,
+        exists: true 
+      };
+    }
+    
+    return newState;
   };
 
   // =====================================================
@@ -118,7 +335,7 @@ export default class PathfindingVisualizer extends Component {
   // Handles mouse down events on a grid cell.
   handleMouseDown = (row, col) => {
     // Do not process if an algorithm is running or if a special node is being dragged.
-    if (this.state.isRunning || this.state.dragging) return;
+    if (this.state.isRunning || this.state.dragging.isDragging) return;
 
     const node = this.state.grid[row][col];
     // Prevent modifying start, end, or checkpoint nodes
@@ -136,34 +353,34 @@ export default class PathfindingVisualizer extends Component {
       // Get a new grid with the updated wall state.
       const newGrid = this.getNewGridWithWallMode(this.state.grid, row, col, wallMode);
       this.setState({
-        isMousePressed: true,
+        mouseIsPressed: true,
         wallMode,
         grid: newGrid,
-        lastUpdatedCell: `${row}-${col}`,
+        message: null,
       });
     }
 
     // Set the flag for mouse pressed and update the wall mode.
-    this.setState({ isMousePressed: true, wallMode });
+    this.setState({ mouseIsPressed: true, wallMode });
   };
 
   // Handles mouse entering a grid cell (for dragging to draw walls).
   handleMouseEnter = (row, col) => {
     // Only process if mouse is pressed and not dragging a special node.
-    if (!this.state.isMousePressed || this.state.dragging) return;
+    if (!this.state.mouseIsPressed || this.state.dragging.isDragging) return;
 
-    const { wallMode, grid, lastUpdatedCell, boostWallEnabled } = this.state;
+    const { wallMode, grid } = this.state;
     const currentCell = `${row}-${col}`;
 
     // Prevent processing the same cell multiple times
-    if (lastUpdatedCell === currentCell) return;
+    if (this.state.message === currentCell) return;
 
     const node = grid[row][col];
     // Skip if the node is a special node (start, end, or checkpoint)
     if (node.isStart || node.isEnd || node.isCheckpoint) return;
 
     // If boost wall mode is enabled, apply boost wall logic.
-    if (boostWallEnabled && wallMode === 'add') {
+    if (this.state.boostWallEnabled && wallMode === 'add') {
       this.createBoostWalls(row, col, wallMode);
     } else {
       // Update visual and grid state for the node.
@@ -171,7 +388,7 @@ export default class PathfindingVisualizer extends Component {
       const newGrid = this.getNewGridWithWallMode(grid, row, col, wallMode);
       // Use throttling to avoid performance issues during rapid mouse movement.
       this.throttledGridUpdate(newGrid);
-      this.setState({ lastUpdatedCell: currentCell });
+      this.setState({ message: currentCell });
     }
   };
 
@@ -189,11 +406,12 @@ export default class PathfindingVisualizer extends Component {
     // Cancel any pending throttled grid updates
     this.throttledGridUpdate.cancel();
     this.setState({
-      isMousePressed: false,
+      mouseIsPressed: false,
       wallMode: null,
-      lastUpdatedCell: null,
+      message: null,
       // Preserve visited nodes if already in first phase of visualization
-      visitedNodesFirstPhase: this.state.visitedNodesFirstPhase 
+      visitedNodesInOrder: this.state.visitedNodesInOrder,
+      nodesInShortestPathOrder: this.state.nodesInShortestPathOrder,
     });
   };
 
@@ -255,8 +473,8 @@ export default class PathfindingVisualizer extends Component {
       // Immediately update state with the new grid and wall mode
       this.setState({
         grid: newGrid,
-        lastUpdatedCell: `${centerRow}-${centerCol}`,
-        isMousePressed: true,
+        message: `${centerRow}-${centerCol}`,
+        mouseIsPressed: true,
         wallMode
       });
     }
@@ -461,7 +679,7 @@ export default class PathfindingVisualizer extends Component {
 
   // Clears all visualization markings from the grid, resetting nodes to their original state.
   clearVisualization = () => {
-    const { grid, visitedNodesFirstPhase } = this.state;
+    const { grid, visitedNodesInOrder } = this.state;
     for (const row of grid) {
       for (const node of row) {
         node.isVisited = false;
@@ -477,7 +695,7 @@ export default class PathfindingVisualizer extends Component {
       }
     }
     // Preserve visited nodes from the first phase if needed.
-    this.setState({ visitedNodesFirstPhase });
+    this.setState({ visitedNodesInOrder });
   };
 
   // Clears only the visited nodes' styles (useful for re-running the algorithm without removing walls).
@@ -498,20 +716,26 @@ export default class PathfindingVisualizer extends Component {
     }
   };
 
-  // Animates the shortest path by iterating over the path nodes and updating their visual class.
+  // Animates the shortest path after visualizing the algorithm.
   animatePath = async (pathNodes, speed) => {
-    // Determine delay based on speed setting.
-    const delay = speed === 'instant' ? 0 : speed === 'slow' ? 100 : 50;
-  
-    if (speed === 'instant') {
-      // For instant speed, update all nodes immediately.
-      pathNodes.forEach(node => {
-        if (!node.isStart && !node.isEnd && !node.isCheckpoint) {
-          document.getElementById(`node-${node.row}-${node.col}`).className = 'node node-path instant';
-        }
-      });
-      return;
+    // Map speed strings to numeric values
+    let speedValue;
+    switch (this.state.speed) {
+      case 'fast':
+        speedValue = 80;
+        break;
+      case 'medium':
+        speedValue = 50;
+        break;
+      case 'slow':
+        speedValue = 20;
+        break;
+      default:
+        speedValue = 80; // Default to fast
     }
+    
+    // Calculate delay based on speed value
+    const delay = Math.max(1, (100 - speedValue) / 16);
   
     // Animate each node sequentially with the determined delay.
     for (let i = 0; i < pathNodes.length; i++) {
@@ -525,7 +749,24 @@ export default class PathfindingVisualizer extends Component {
   
   // Animates visited nodes during the algorithm's run.
   animateVisitedNodes = async (visitedNodes, isSecondPhase = false) => {
-    const delay = Math.max(1, (100 - this.state.animationSpeed) / 16);
+    // Map speed strings to numeric values
+    let speedValue;
+    switch (this.state.speed) {
+      case 'fast':
+        speedValue = 80;
+        break;
+      case 'medium':
+        speedValue = 50;
+        break;
+      case 'slow':
+        speedValue = 20;
+        break;
+      default:
+        speedValue = 80; // Default to fast
+    }
+    
+    // Calculate delay based on speed value
+    const delay = Math.max(1, (100 - speedValue) / 16);
   
     for (let i = 0; i < visitedNodes.length; i++) {
       await new Promise(resolve => setTimeout(resolve, delay));
@@ -533,23 +774,17 @@ export default class PathfindingVisualizer extends Component {
       if (!node.isStart && !node.isEnd && !node.isCheckpoint) {
         const element = document.getElementById(`node-${node.row}-${node.col}`);
         if (element) {
-          if (isSecondPhase) {
-            // In second phase, add a secondary visited class
-            element.classList.add('node-visited-second');
-          } else {
-            element.className = 'node node-visited';
-          }
+          element.className = `node ${isSecondPhase ? 'node-visited-second' : 'node-visited'}`;
         }
       }
     }
   };
 
-  // Handler to update the animation speed setting.
-  setAnimationSpeed = (speed) => {
-    if (this.state.isRunning) return;
-    console.log('Setting speed to:', speed);
-    this.setState({ animationSpeed: speed }, () => {
-      console.log('New animation speed:', this.state.animationSpeed);
+  // Handles speed change for algorithm animations.
+  handleSpeedChange = (speed) => {
+    this.setState({ 
+      speed: speed,
+      animationSpeed: speed
     });
   };
 
@@ -563,11 +798,11 @@ export default class PathfindingVisualizer extends Component {
 
     // Determine which special node is being dragged.
     if (node.isStart) {
-      this.setState({ dragging: 'start' });
+      this.setState({ dragging: { isDragging: true, draggedNodeType: 'start', sourceRow: node.row, sourceCol: node.col } });
     } else if (node.isEnd) {
-      this.setState({ dragging: 'end' });
+      this.setState({ dragging: { isDragging: true, draggedNodeType: 'end', sourceRow: node.row, sourceCol: node.col } });
     } else if (node.isCheckpoint) {
-      this.setState({ dragging: 'checkpoint' });
+      this.setState({ dragging: { isDragging: true, draggedNodeType: 'checkpoint', sourceRow: node.row, sourceCol: node.col } });
     }
 
     // Create an invisible drag ghost element to improve the drag effect.
@@ -596,7 +831,7 @@ export default class PathfindingVisualizer extends Component {
     e.preventDefault();
     const { dragging, grid } = this.state;
     // Do not allow dropping on walls.
-    if (!dragging || targetNode.isWall) return;
+    if (!dragging.isDragging || targetNode.isWall) return;
 
     // Create a new grid copy.
     const newGrid = grid.map(row => [...row]);
@@ -604,9 +839,9 @@ export default class PathfindingVisualizer extends Component {
     // Remove the special designation from any node that currently holds it.
     for (let row = 0; row < grid.length; row++) {
       for (let col = 0; col < grid[0].length; col++) {
-        if ((dragging === 'start' && grid[row][col].isStart) ||
-          (dragging === 'end' && grid[row][col].isEnd) ||
-          (dragging === 'checkpoint' && grid[row][col].isCheckpoint)) {
+        if ((dragging.draggedNodeType === 'start' && grid[row][col].isStart) ||
+          (dragging.draggedNodeType === 'end' && grid[row][col].isEnd) ||
+          (dragging.draggedNodeType === 'checkpoint' && grid[row][col].isCheckpoint)) {
           newGrid[row][col] = {
             ...grid[row][col],
             isStart: false,
@@ -620,15 +855,15 @@ export default class PathfindingVisualizer extends Component {
     // Set the dropped cell to be the new special node.
     newGrid[targetNode.row][targetNode.col] = {
       ...targetNode,
-      isStart: dragging === 'start',
-      isEnd: dragging === 'end',
-      isCheckpoint: dragging === 'checkpoint'
+      isStart: dragging.draggedNodeType === 'start',
+      isEnd: dragging.draggedNodeType === 'end',
+      isCheckpoint: dragging.draggedNodeType === 'checkpoint'
     };
 
     // Update state with the new grid and reset dragging.
     this.setState({
       grid: newGrid,
-      dragging: null
+      dragging: { isDragging: false, draggedNodeType: null, sourceRow: null, sourceCol: null }
     });
   };
 
@@ -696,48 +931,51 @@ export default class PathfindingVisualizer extends Component {
     this.setState({ grid: newGrid });
   };
 
-  // Resets the grid to its initial configuration.
+  // Resets the grid to its initial state with no walls or visualizations.
   resetGrid = () => {
-    const newGrid = this.state.grid.map(row =>
-      row.map(node => {
-        // Determine if the node should be the new start or end based on initial positions.
-        const isStart = node.row === this.initialStartNode.row && node.col === this.initialStartNode.col;
-        const isEnd = node.row === this.initialEndNode.row && node.col === this.initialEndNode.col;
-
-        return {
-          ...node,
-          isWall: false,
-          isVisited: false,
-          distance: Infinity,
-          isStart,
-          isEnd,
-          isCheckpoint: false,
-          previousNode: null,
-        };
-      })
+    // Calculate proper positions for special nodes based on current grid dimensions
+    const { height, width } = this.state;
+    
+    // Calculate proper positions based on current grid size
+    const startNode = calculateProportionalPosition(
+      this.defaultStartNode, 
+      this.defaultRows, 
+      this.defaultCols, 
+      height, 
+      width
     );
-
-    // Update state with the reset grid and initial special node positions.
+    
+    const endNode = calculateProportionalPosition(
+      this.defaultEndNode, 
+      this.defaultRows, 
+      this.defaultCols, 
+      height, 
+      width
+    );
+    
+    const checkpointPos = calculateProportionalPosition(
+      this.defaultCheckpoint,
+      this.defaultRows,
+      this.defaultCols,
+      height,
+      width
+    );
+    
+    // Create a new grid with the calculated dimensions and node positions
     this.setState({
-      grid: newGrid,
-      startNode: this.initialStartNode,
-      endNode: this.initialEndNode,
-      checkpoint: null,
-      visitedNodesFirstPhase: [],
-      isVisualizing: false
+      grid: [],
+      startNode,
+      endNode,
+      checkpoint: { ...checkpointPos, exists: false }, // Reset checkpoint with correct position but not active
+      isVisualizing: false,
+      isRunning: false,
+      mouseIsPressed: false,
+      visitedNodesInOrder: [],
+      nodesInShortestPathOrder: [],
+    }, () => {
+      // After state update, initialize the grid
+      this.initializeGrid();
     });
-
-    // Update each node's visual class according to its new state.
-    for (const row of newGrid) {
-      for (const node of row) {
-        const element = document.getElementById(`node-${node.row}-${node.col}`);
-        if (element) {
-          element.className = node.isStart ? 'node node-start' : 
-                            node.isEnd ? 'node node-end' : 
-                            'node';
-        }
-      }
-    }
   };
 
   // Adds a checkpoint to a random empty node on the grid.
@@ -750,24 +988,28 @@ export default class PathfindingVisualizer extends Component {
       const node = newGrid[position.row][position.col];
       // Mark the node as a checkpoint.
       newGrid[position.row][position.col] = { ...node, isCheckpoint: true };
-      this.setState({ grid: newGrid, checkpoint: position });
+      this.setState({ 
+        grid: newGrid, 
+        checkpoint: { ...position, exists: true }
+      });
     }
   };
 
   // Removes the checkpoint from the grid.
   removeCheckpoint = () => {
     const { grid, checkpoint } = this.state;
-    if (!checkpoint) return;
+    if (!checkpoint || !checkpoint.exists) return;
+    
     const newGrid = grid.slice();
+    // Find the checkpoint node in the grid and update it
     const node = newGrid[checkpoint.row][checkpoint.col];
-    // Remove checkpoint status from the node.
     newGrid[checkpoint.row][checkpoint.col] = { ...node, isCheckpoint: false };
-    this.setState({ grid: newGrid, checkpoint: null });
-  };
-
-  // Handles speed change for algorithm animations.
-  handleSpeedChange = (speed) => {
-    this.setState({ speed });
+    
+    // Update state with the updated grid and checkpoint
+    this.setState({ 
+      grid: newGrid, 
+      checkpoint: { ...checkpoint, exists: false } 
+    });
   };
 
   // Randomizes the positions of the start, end, and (optionally) checkpoint nodes.
@@ -778,7 +1020,7 @@ export default class PathfindingVisualizer extends Component {
       ...node,
       isStart: false,
       isEnd: false,
-      isCheckpoint: false,
+      isCheckpoint: false, // Clear checkpoint status to reassign it if needed
     })));
 
     // Get random empty positions for start and end.
@@ -786,18 +1028,32 @@ export default class PathfindingVisualizer extends Component {
     const newEnd = this.getRandomEmptyPosition(newGrid);
 
     // If a checkpoint exists, also assign a random empty position.
-    if (checkpoint) {
-      const newCheckpoint = this.getRandomEmptyPosition(newGrid);
+    let newCheckpoint = null;
+    if (checkpoint && checkpoint.exists) {
+      newCheckpoint = this.getRandomEmptyPosition(newGrid);
       if (newCheckpoint) {
         newGrid[newCheckpoint.row][newCheckpoint.col].isCheckpoint = true;
-        this.setState({ checkpoint: newCheckpoint });
       }
     }
 
     if (newStart) newGrid[newStart.row][newStart.col].isStart = true;
     if (newEnd) newGrid[newEnd.row][newEnd.col].isEnd = true;
 
-    this.setState({ grid: newGrid, startNode: newStart, endNode: newEnd });
+    // Update state with new positions
+    if (checkpoint && checkpoint.exists && newCheckpoint) {
+      this.setState({ 
+        grid: newGrid, 
+        startNode: newStart, 
+        endNode: newEnd,
+        checkpoint: { ...newCheckpoint, exists: true }
+      });
+    } else {
+      this.setState({ 
+        grid: newGrid, 
+        startNode: newStart, 
+        endNode: newEnd 
+      });
+    }
   };
 
   // ================= Maze Generation Functions (New Algorithms) =================
@@ -805,121 +1061,98 @@ export default class PathfindingVisualizer extends Component {
   // Generates a maze using the recursive division algorithm.
   generateRecursiveMaze = async () => {
     if (this.state.isVisualizing) return;
+    this.clearWalls();
+    this.clearPath();
+
+    const { grid } = this.state;
     this.setState({ isVisualizing: true });
 
-    // Prepare a board object with metadata and grid state.
+    // Set board dimensions using state values instead of hardcoded ones
     const board = {
-      nodes: {},
-      wallsToAnimate: [],
-      height: 32,
-      width: 75,
-      start: `${this.state.startNode.row}-${this.state.startNode.col}`,
-      target: `${this.state.endNode.row}-${this.state.endNode.col}`,
-      speed: this.state.speed
+      height: this.state.height,
+      width: this.state.width,
+      grid: grid,
+      walls: []
     };
 
-    // Populate board.nodes with current grid node statuses.
-    this.state.grid.forEach(row => {
-      row.forEach(node => {
-        board.nodes[`${node.row}-${node.col}`] = {
-          status: node.isWall ? 'wall' : 'unvisited',
-          weight: 0
-        };
-      });
-    });
+    // Adjust recursion parameters based on the grid dimensions
+    const recursiveBoard = generateRecursiveMaze(
+      board,
+      2,
+      this.state.height - 3,
+      2,
+      this.state.width - 3,
+      'horizontal',
+      true
+    );
 
-    // Execute the recursive division maze algorithm.
-    recursiveDivisionMazeNew(board, 2, 30, 2, 73, 'horizontal', false, 'wall');
-    // Animate the walls generated by the algorithm.
-    await this.animateMaze(board.wallsToAnimate);
-    this.setState({ isVisualizing: false });
+    this.animateMaze(recursiveBoard.walls);
   };
 
   // Generates a stair-pattern maze.
   generateStairMaze = async () => {
     if (this.state.isVisualizing) return;
+    this.clearWalls();
+    this.clearPath();
+
+    const { grid } = this.state;
     this.setState({ isVisualizing: true });
 
+    // Set board dimensions using state values instead of hardcoded ones
     const board = {
-      nodes: {},
-      wallsToAnimate: [],
-      height: 32,
-      width: 75,
-      start: `${this.state.startNode.row}-${this.state.startNode.col}`,
-      target: `${this.state.endNode.row}-${this.state.endNode.col}`,
-      speed: this.state.speed
+      height: this.state.height,
+      width: this.state.width,
+      grid: grid,
+      walls: []
     };
 
-    this.state.grid.forEach(row => {
-      row.forEach(node => {
-        board.nodes[`${node.row}-${node.col}`] = {
-          status: node.isWall ? 'wall' : 'unvisited',
-          weight: 0
-        };
-      });
-    });
-
-    stairMazeNew(board);
-    await this.animateMaze(board.wallsToAnimate);
-    this.setState({ isVisualizing: false });
+    // Generate the stair maze using the dynamic dimensions
+    const stairMazeBoard = generateStairMaze(board);
+    this.animateMaze(stairMazeBoard.walls);
   };
 
   // Generates a random maze using a new algorithm.
   generateRandomMaze = async () => {
     if (this.state.isVisualizing) return;
+    this.clearWalls();
+    this.clearPath();
+
+    const { grid } = this.state;
     this.setState({ isVisualizing: true });
 
+    // Set board dimensions using state values instead of hardcoded ones
     const board = {
-      nodes: {},
-      wallsToAnimate: [],
-      height: 32,
-      width: 75,
-      start: `${this.state.startNode.row}-${this.state.startNode.col}`,
-      target: `${this.state.endNode.row}-${this.state.endNode.col}`,
-      speed: this.state.speed
+      height: this.state.height,
+      width: this.state.width,
+      grid: grid,
+      walls: []
     };
 
-    this.state.grid.forEach(row => {
-      row.forEach(node => {
-        board.nodes[`${node.row}-${node.col}`] = {
-          status: node.isWall ? 'wall' : 'unvisited',
-          weight: 0
-        };
-      });
-    });
-
-    randomMazeNew(board);
-    await this.animateMaze(board.wallsToAnimate);
-    this.setState({ isVisualizing: false });
+    // Generate the random maze using the dynamic dimensions
+    const randomBoard = generateRandomMaze(board);
+    this.animateMaze(randomBoard.walls);
   };
 
   // Generates a basic random maze using a simplified algorithm.
   generateBasicRandomMaze = async () => {
     if (this.state.isVisualizing) return;
+    this.clearWalls();
+    this.clearPath();
+
+    const { grid } = this.state;
     this.setState({ isVisualizing: true });
 
+    // Set board dimensions using state values instead of hardcoded ones
     const board = {
-      nodes: {},
-      wallsToAnimate: [],
-      height: 32,
-      width: 75,
-      start: `${this.state.startNode.row}-${this.state.startNode.col}`,
-      target: `${this.state.endNode.row}-${this.state.endNode.col}`,
-      speed: this.state.speed
+      height: this.state.height,
+      width: this.state.width,
+      grid: grid,
+      walls: []
     };
 
-    this.state.grid.forEach(row => {
-      row.forEach(node => {
-        board.nodes[`${node.row}-${node.col}`] = {
-          status: node.isWall ? 'wall' : 'unvisited',
-          weight: 0
-        };
-      });
-    });
-
-    basicRandomMazeNew(board);
-    await this.animateMaze(board.wallsToAnimate);
-    this.setState({ isVisualizing: false });
+    // Generate the basic random maze using the dynamic dimensions
+    const randomBoard = generateBasicRandomMaze(board);
+    this.animateMaze(randomBoard.walls);
   };
 
   // ================= Maze Generation Functions (Old Algorithms) =================
@@ -1014,75 +1247,95 @@ export default class PathfindingVisualizer extends Component {
     requestAnimationFrame(animate);
   };
 
-  // Animates maze generation based on an array of wall objects.
+  // Animates maze generation based on walls array
   animateMaze = async (wallsToAnimate) => {
+    // Make a copy of the walls
     const nodes = wallsToAnimate.slice(0);
+    const newGrid = [...this.state.grid];
 
     if (this.state.speed === 'instant') {
-      const newGrid = [...this.state.grid];
-      const fragment = document.createDocumentFragment();
-
-      // Instant update for each wall node.
+      // For instant speed, update all wall nodes immediately
       nodes.forEach(wall => {
-        if (wall?.id) {
-          const [row, col] = wall.id.split('-').map(Number);
-          newGrid[row][col].isWall = true;
-          newGrid[row][col].weight = 0;
+        let row, col;
+        
+        // Handle both wall formats: [row, col] array or object with id property
+        if (Array.isArray(wall)) {
+          [row, col] = wall;
+        } else if (wall?.id) {
+          [row, col] = wall.id.split('-').map(Number);
+        } else {
+          return; // Skip invalid wall data
+        }
 
-          const element = document.createElement('div');
-          element.id = `node-${row}-${col}`;
-          element.className = 'node node-wall';
-          fragment.appendChild(element);
+        // Check that the coordinates are valid
+        if (row >= 0 && row < newGrid.length && 
+            col >= 0 && col < newGrid[0].length) {
+          newGrid[row][col] = {
+            ...newGrid[row][col],
+            isWall: true,
+            weight: 0
+          };
+
+          // Update the DOM node if it exists
+          const node = document.getElementById(`node-${row}-${col}`);
+          if (node) node.className = 'node node-wall';
         }
       });
 
-      document.getElementById('grid-container').replaceChildren(fragment);
       this.setState({ grid: newGrid, isVisualizing: false });
       return;
     }
 
+    // For animated speed, animate the walls appearing one by one
     let currentIndex = 0;
-    const speed = this.state.speed === 'slow' ? 16 : 0;
-
-    // Animation loop for maze walls.
+    
+    // Define the animation loop using requestAnimationFrame
     const animate = (timestamp) => {
       const maxUpdatesPerFrame = this.state.speed === 'slow' ? 1 : 10;
       let updates = 0;
 
+      // Process a limited number of wall updates per animation frame
       while (currentIndex < nodes.length && updates < maxUpdatesPerFrame) {
         const wall = nodes[currentIndex];
-        if (wall?.id) {
-          const [row, col] = wall.id.split('-').map(Number);
-          const newGrid = [...this.state.grid];
-          const node = newGrid[row][col];
-          node.isWall = true;
-          node.weight = 0;
-          this.setState({ grid: newGrid });
-
-          const element = document.getElementById(`node-${row}-${col}`);
-          if (element) {
-            element.className = 'node node-wall-animated';
-            requestAnimationFrame(() => {
-              // Revert to standard wall style after animation if weight is not set.
-              element.className = node.weight === 5 ? 'node node-weight' : 'node node-wall';
-            });
-          }
+        let row, col;
+        
+        // Handle both wall formats: [row, col] array or object with id property
+        if (Array.isArray(wall)) {
+          [row, col] = wall;
+        } else if (wall?.id) {
+          [row, col] = wall.id.split('-').map(Number);
+        } else {
+          currentIndex++;
+          continue; // Skip invalid wall data
         }
 
-        if (currentIndex === nodes.length - 1) {
-          this.setState({ isVisualizing: false });
-          return;
+        // Check that the coordinates are valid
+        if (row >= 0 && row < newGrid.length && 
+            col >= 0 && col < newGrid[0].length) {
+          newGrid[row][col] = {
+            ...newGrid[row][col],
+            isWall: true,
+            weight: 0
+          };
+
+          // Update the DOM node if it exists
+          const node = document.getElementById(`node-${row}-${col}`);
+          if (node) node.className = 'node node-wall';
         }
 
         currentIndex++;
         updates++;
       }
 
+      // Continue animation if there are more walls to process
       if (currentIndex < nodes.length) {
-        setTimeout(() => requestAnimationFrame(animate), speed);
+        requestAnimationFrame(animate);
+      } else {
+        this.setState({ grid: newGrid, isVisualizing: false });
       }
     };
 
+    // Start the animation
     requestAnimationFrame(animate);
   };
 
@@ -1118,16 +1371,186 @@ export default class PathfindingVisualizer extends Component {
     this.toggleBoostWall();
   };
 
+  // Change resolution configuration
+  changeResolution = (resolutionValue) => {
+    // Only allow resolution change when not visualizing/running
+    if (this.state.isVisualizing || this.state.isRunning) {
+      this.setState({ message: "Cannot change resolution during visualization" });
+      return;
+    }
+    
+    // Find the selected resolution configuration
+    const selectedConfig = resolutionConfigs.find(config => config.resolution === resolutionValue);
+    if (!selectedConfig) return;
+    
+    const { rows, cols, nodeSize, defaultPositions, containerClass, topBarClass } = selectedConfig;
+    
+    // Calculate proper positions for special nodes based on new dimensions
+    const oldRows = this.state.height;
+    const oldCols = this.state.width;
+    
+    const startNode = calculateProportionalPosition(
+      this.state.startNode, 
+      oldRows, 
+      oldCols, 
+      rows, 
+      cols
+    );
+    
+    const endNode = calculateProportionalPosition(
+      this.state.endNode, 
+      oldRows, 
+      oldCols, 
+      rows, 
+      cols
+    );
+    
+    const checkpoint = calculateProportionalPosition(
+      this.state.checkpoint, 
+      oldRows, 
+      oldCols, 
+      rows, 
+      cols
+    );
+    
+    // Update state with new dimensions and positions
+    this.setState({
+      height: rows,
+      width: cols,
+      startNode,
+      endNode,
+      checkpoint,
+      currentResolution: resolutionValue,
+      containerClass: containerClass,
+      topBarClass: topBarClass
+    }, () => {
+      // Reinitialize the grid with new dimensions
+      this.initializeGrid();
+      
+      // Update the grid container class
+      this.updateGridContainerClass(containerClass);
+      this.updateTopBarClass(topBarClass);
+    });
+    
+    // Update node size (CSS variable)
+    document.documentElement.style.setProperty('--node-size', `${nodeSize}px`);
+  };
+  
+  // Update the grid container class based on resolution
+  updateGridContainerClass = (newContainerClass) => {
+    const gridContainer = document.querySelector('.grid-container, .grid-container-qhd, .grid-container-4k, .grid-container-hd, .grid-container-hd-small, .grid-container-mobile');
+    
+    if (gridContainer) {
+      // Remove all potential container classes
+      gridContainer.classList.remove(
+        'grid-container', 
+        'grid-container-qhd', 
+        'grid-container-4k', 
+        'grid-container-hd', 
+        'grid-container-hd-small', 
+        'grid-container-mobile'
+      );
+      
+      // Add the new container class
+      gridContainer.classList.add(newContainerClass);
+    }
+  }
+
+  // Update the top bar class based on resolution
+  updateTopBarClass = (newTopBarClass) => {
+    const topBar = document.querySelector('.top-bar, .top-bar-qhd, .top-bar-4k, .top-bar-hd, .top-bar-hd-small, .top-bar-mobile');
+    
+    if (topBar) {
+      // Remove all potential top bar classes
+      topBar.classList.remove(
+        'top-bar', 
+        'top-bar-qhd', 
+        'top-bar-4k', 
+        'top-bar-hd', 
+        'top-bar-hd-small', 
+        'top-bar-mobile'
+      );
+      
+      // Add the new top bar class
+      topBar.classList.add(newTopBarClass);
+    }
+  }
+
+  // Helper function to calculate margin adjustment based on resolution
+calculateMarginAdjustment = (resolutionValue) => {
+  switch (resolutionValue) {
+    case 'mobile':
+      return '-30px'; // Adjust for mobile
+    case '1366x768':
+      return '-60px'; // Adjust for HD
+    case '1920x1080':
+      return '0px'; // Default for FHD
+    case '2560x1440':
+      return '-90px'; // Adjust for QHD
+    case '3840x2160':
+      return '-90px'; // Adjust for 4K
+    default:
+      return '0px'; // Fallback
+  }
+};
+
   // =====================================================
   // Render Function: Builds the UI for the Visualizer
   // =====================================================
   render() {
-    const { grid, error, isRunning, checkpoint, isVisualizing, boostWallEnabled } = this.state;
+    const {
+      grid,
+      mouseIsPressed,
+      isRunning,
+      isVisualizing,
+      startNode,
+      endNode,
+      checkpoint,
+      message,
+      boostWallEnabled,
+      currentResolution,
+      availableResolutions,
+      containerClass,
+      topBarClass,
+      isMobileDevice
+    } = this.state;
+
+    // If user is on a mobile device with specific resolutions, show error message
+    if (isMobileDevice) {
+      return (
+        <div className="mobile-error-container">
+          <div className="mobile-error-message">
+            <h2>Desktop App Only</h2>
+            <p>This pathfinding visualizer is designed for desktop use only.</p>
+            <p>The interactive grid and controls require a larger screen for optimal experience.</p>
+            <p>Please access this application from a desktop or laptop computer.</p>
+            <div className="mobile-error-icon">
+              <FontAwesomeIcon icon={faLocationDot} size="3x" />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Dynamic styling for grid rows based on calculated dimensions
+    const gridRowStyle = {
+      gridTemplateColumns: `repeat(${this.state.width}, var(--node-size))`
+    };
+
+    // Calculate dynamic left margin based on screen width
+    let leftMargin = 0;
+    if (this.state.width <= 1366) {
+        leftMargin = -30; // Adjust this value as needed
+    } else if (this.state.width <= 1024) {
+        leftMargin = -60; // Adjust this value as needed
+    } else if (this.state.width >= 2560) {
+        leftMargin = -90; // Adjust this value as needed
+    }
 
     return (
-      <div>
+      <div className="pathfinding-visualizer">
         {/* Top navigation bar with menus for Algorithms, Mazes, and Tools */}
-        <div className="top-bar" role="navigation" aria-label="Main navigation">
+        <div className={topBarClass} role="navigation" aria-label="Main navigation">
           <ul className="hList">
             <li>
               <a href="#click" className="menu" role="button" aria-haspopup="true">
@@ -1152,7 +1575,6 @@ export default class PathfindingVisualizer extends Component {
                 <ul className="menu-dropdown" role="menu">
                   <li role="menuitem" onClick={this.generateRecursiveMaze}>Recursive Division 1</li>
                   <li role="menuitem" onClick={this.generateOldRecursiveMaze}>Recursive Division 2</li>
-                  <li role="menuitem" onClick={this.generateStairMaze}>Stair Pattern</li>
                   <li role="menuitem" onClick={this.generateOldRandomMaze}>Random Maze</li>
                   <li role="menuitem" onClick={this.generateBasicRandomMaze}>Basic Random</li>
                 </ul>
@@ -1182,10 +1604,10 @@ export default class PathfindingVisualizer extends Component {
             <li>
               <button
                 className="custom-button"
-                onClick={() => this.state.checkpoint ? this.removeCheckpoint() : this.addCheckpoint()}
+                onClick={() => this.state.checkpoint && this.state.checkpoint.exists ? this.removeCheckpoint() : this.addCheckpoint()}
                 disabled={this.state.isVisualizing}
               >
-                {this.state.checkpoint ? 'Remove Checkpoint' : 'Add Checkpoint'}
+                {this.state.checkpoint && this.state.checkpoint.exists ? 'Remove Checkpoint' : 'Add Checkpoint'}
               </button>
             </li>
             <li>
@@ -1236,29 +1658,32 @@ export default class PathfindingVisualizer extends Component {
               </button>
             </div>
           </div>
+
+          
         </div>
         
         {/* Display error messages if any */}
-        {error && (
+        {this.state.error && (
           <div
             className="error-message"
             role="alert"
             aria-live="polite"
           >
-            {error}
+            {this.state.error}
           </div>
         )}
 
         {/* Grid container where the pathfinding grid is rendered */}
-        <div
-          className="grid-container"
-          role="region"
-          aria-label="Pathfinding visualization grid"
-        >
+        <div className={containerClass} id="grid-container">
           <div className="grid">
             {/* Render each row of nodes */}
             {grid.map((row, rowIdx) => (
-              <div key={rowIdx} className="grid-row" role="row">
+              <div 
+                key={rowIdx} 
+                className="grid-row" 
+                style={gridRowStyle}
+                role="row"
+              >
                 {/* Render each node (cell) in the row using the Node component */}
                 {row.map((node, nodeIdx) => (
                   <Node
